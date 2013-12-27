@@ -15,7 +15,7 @@ from common import *
 
 #
 def visualizeWeights(weights, imgShape, tileShape):
-  return utils.tile_raster_images(weights, imgShape, tileShape, tile_spacing=(1, 1),scale_rows_to_unit_interval=False)
+  return utils.tile_raster_images(weights, imgShape, tileShape, tile_spacing=(1, 1))
 
 def main():
 
@@ -34,7 +34,9 @@ def main():
   rbm = RBM.RBM(scaledVecs, 500, RBM.contrastiveDivergence)
   rbm.train()
 
-  t = visualizeWeights(rbm.weights, images[0].shape, images[0].shape)
+  t = visualizeWeights(rbm.weights.T, images[0].shape, (10,10))
+
+  # t = visualizeWeights(rbm.weights, images[0].shape, images[0].shape)
   # TODO: add pickle behaviour to RBM
   pickle.dump(t, open( "weights.p", "wb" ) )
   pickle.dump(rbm.weights, open( "weights.p", "wb" ) )
