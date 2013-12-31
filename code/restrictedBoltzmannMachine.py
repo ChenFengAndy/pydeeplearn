@@ -110,7 +110,7 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=1):
   for epoch in xrange(epochs):
     # TODO: you are missing the last part of the data if you
     #
-    batchData = data[epoch * miniBatchSize: (epoch + 1) * miniBatchSize]
+    batchData = data[epoch * miniBatchSize: (epoch + 1) * miniBatchSize, :]
     # TODO: change this and make it proportional to the data
     # like the CD-n
     if epoch < 5:
@@ -126,43 +126,42 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=1):
       cdSteps = 10
 
     # Move the reconstruction at the end
-    for i in xrange(len(batchData)):
+    # for i in xrange(len(batchData)):
     #   if EXPENSIVE_CHECKS_ON:
     #     if i % reconstructionStep == 0:
     #       print "reconstructionError"
     #       print reconstructionError(biases, weights, data)
 
-      weightsDiff, visibleBiasDiff, hiddenBiasDiff = modelAndDataSampleDiffs(batchData[i], biases, weights)
-      # Update the weights
-      # data - model
-      # Positive phase - negative
-      # Weight decay factor
-      deltaWeights = (epsilon / len(batchData) * weightsDiff
-                      - epsilon * weightDecay * decayFactor *  weights)
+    weightsDiff, visibleBiasDiff, hiddenBiasDiff = modelAndDataSampleDiffs(batchData, biases, weights)
+    # Update the weights
+    # data - model
+    # Positive phase - negative
+    # Weight decay factor
+    deltaWeights = (epsilon * weightsDiff
+                    - epsilon * weightDecay * decayFactor *  weights)
+    deltaVisible = epsilon * visibleBiasDiff
+    deltaHidden  = epsilon * hiddenBiasDiff
 
-      deltaVisible = epsilon * visibleBiasDiff
-      deltaHidden  = epsilon * hiddenBiasDiff
+    # if momentum:
+      # this is not required: it is not in Hinton's thing
+      # and an if statement might make it considerably shorted in
+      # uses in Deep belief networks when we have to train multiple
+    if epoch > 1:
+      deltaWeights = momentum * oldDeltaWeights + deltaWeights
+      deltaVisible = momentum * oldDeltaVisible + deltaVisible
+      deltaWeights = momentum * oldDeltaHidden + deltaHidden
 
-      # if momentum:
-        # this is not required: it is not in Hinton's thing
-        # and an if statement might make it considerably shorted in
-        # uses in Deep belief networks when we have to train multiple
-      if i > 1:
-        deltaWeights = momentum * oldDeltaWeights + deltaWeights
-        deltaVisible = momentum * oldDeltaVisible + deltaVisible
-        deltaWeights = momentum * oldDeltaHidden + deltaHidden
+    oldDeltaWeights = deltaWeights
+    oldDeltaVisible = deltaVisible
+    oldDeltaHidden = deltaHidden
 
-      oldDeltaWeights = deltaWeights
-      oldDeltaVisible = deltaVisible
-      oldDeltaHidden = deltaHidden
+    # Update the weighths
+    weights += deltaWeights
+    # Update the visible biases
+    biases[0] += deltaVisible
 
-      # Update the weighths
-      weights += deltaWeights
-      # Update the visible biases
-      biases[0] += deltaVisible
-
-      # Update the hidden biases
-      biases[1] += deltaHidden
+    # Update the hidden biases
+    biases[1] += deltaHidden
 
   return biases, weights
 
@@ -182,6 +181,9 @@ def modelAndDataSampleDiffs(batchData, biases, weights, cdSteps=1):
                                       biases, weights, False)
   hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
                                      biases, weights, False)
+
+  print "batchData size" + str(batchData.shape)
+  print "hidden" + str(hidden.shape)
 
   weightsDiff = np.dot(batchData.T, hidden) - np.dot(visibleReconstruction.T, hiddenReconstruction)
   visibleBiasDiff = np.sum(batchData - visibleReconstruction, axis=0)
@@ -224,7 +226,8 @@ def updateLayerSingle(layer, otherLayerValues, biases, weightMatrix, binary=Fals
 def updateLayer(layer, otherLayerValues, biases, weights, binary=False):
   bias = biases[layer]
   # might not work if it is just a row
-  size = otherLayerValues.shape[0]
+  # size = otherLayerValues.shape[0]
+  size = 1
 
   if layer == Layer.VISIBLE:
     activation = np.dot(otherLayerValues, weights.T)
