@@ -132,7 +132,7 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=1):
     #       print "reconstructionError"
     #       print reconstructionError(biases, weights, data)
 
-      weightsDiff, visibleBiasDiff, hiddenBiasDiff = modelAndDataSampleDiffs(batchData[i], biases, weights)
+      weightsDiff, visibleBiasDiff, hiddenBiasDiff = modelAndDataSampleDiffs(batchData[i, :], biases, weights)
       # Update the weights
       # data - model
       # Positive phase - negative
@@ -225,6 +225,7 @@ def updateLayer(layer, otherLayerValues, biases, weights, binary=False):
   bias = biases[layer]
   # might not work if it is just a row
   size = otherLayerValues.shape[0]
+  # size = 1
 
   if layer == Layer.VISIBLE:
     activation = np.dot(otherLayerValues, weights.T)
