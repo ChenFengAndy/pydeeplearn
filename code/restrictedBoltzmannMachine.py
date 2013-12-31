@@ -110,7 +110,7 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=1):
   for epoch in xrange(epochs):
     # TODO: you are missing the last part of the data if you
     #
-    batchData = data[epoch * miniBatchSize: (epoch + 1) * miniBatchSize]
+    batchData = data[epoch * miniBatchSize: (epoch + 1) * miniBatchSize, :]
     # TODO: change this and make it proportional to the data
     # like the CD-n
     if epoch < 5:
