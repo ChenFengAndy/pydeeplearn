@@ -77,7 +77,7 @@ class Softmax(ActivationFunction):
     return value * (1.0 - value)
 
   def derivativeForLinearSum(self, topLayerDerivatives, topLayerActivations):
-    # write it as matrix multiplication
+    # TODO: write it as matrix multiplication
     d = - np.outer(topLayerActivations, topLayerActivations)
     d[np.diag_indices_from(d)] = topLayerActivations * (1 - topLayerActivations)
     return np.dot(topLayerDerivatives, d)

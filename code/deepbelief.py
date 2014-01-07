@@ -138,6 +138,8 @@ class DBN(object):
                                               layerValues[-1])
 
           # Compute all derivatives
+          # nice comment on what this is and that it is a 3d matrix
+
           dWeights, dBias = backprop(self.weights, layerValues,
                               finalLayerErrors, self.activationFunctions)
           # might be better to compute the sum here
@@ -172,16 +174,22 @@ class DBN(object):
       dataInstace: The instance to be classified.
 
     """
-  def forwardPass(self, dataInstace):
-    currentLayerValues = dataInstace
+  def forwardPass(self, dataInstaces):
+    currentLayerValues = dataInstaces
     layerValues = [currentLayerValues]
+
+    # TODO: think about doing this better
+    if len(dataInstaces.shape) == 2:
+      size = dataInstaces.shape[0]
+    else:
+      size = 1
 
     for stage in xrange(self.nrLayers - 1):
       weights = self.weights[stage]
-      biases = self.biases[stage]
+      bias = self.biases[stage]
       activation = self.activationFunctions[stage]
 
-      linearSum = np.dot(currentLayerValues, weights) + biases
+      linearSum = np.dot(currentLayerValues, weights) + np.tile(bias, (size, 1))
       currentLayerValues = activation.value(linearSum)
       layerValues += [currentLayerValues]
 
@@ -246,10 +254,10 @@ Arguments:
       the error derivatives.
       These were obtained by doing a forward pass in the network.
 """
-def derivativesForBottomLayer(layerWeights, y, derivativesWrtLinearInputSum):
+def derivativesForBottomLayer(layerWeights, layerActivations, derivativesWrtLinearInputSum):
   bottomLayerDerivatives = np.dot(layerWeights, derivativesWrtLinearInputSum)
 
-  weightDerivatives = np.outer(y, derivativesWrtLinearInputSum)
+  weightDerivatives = np.outer(layerActivations, derivativesWrtLinearInputSum)
   # assert layerWeights.shape == weightDerivatives.shape
 
   return weightDerivatives, bottomLayerDerivatives, derivativesWrtLinearInputSum
