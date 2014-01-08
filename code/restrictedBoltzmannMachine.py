@@ -63,7 +63,7 @@ class RBM(object):
 
   @classmethod
   def initializeWeights(cls, nrVisible, nrHidden):
-    return np.random.normal(0, 0.01, (nrVisible, nrHidden))
+    return normal(0, 0.01, (nrVisible, nrHidden))
 
   @classmethod
   def intializeBiases(cls, data, nrHidden):

@@ -88,3 +88,7 @@ class Sigmoid(ActivationFunction):
 
   def derivativeForLinearSum(self, topLayerDerivatives, topLayerActivations):
     return topLayerActivations * (1 - topLayerActivations) * topLayerDerivatives
+
+
+def normal(mean, std, size):
+  return mean + std * np.random.standard_normal(size)
