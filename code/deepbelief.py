@@ -122,38 +122,28 @@ class DBN(object):
       for batch in xrange(nrMiniBatches):
         start = batch * miniBatchSize
         end = (batch + 1) * miniBatchSize
+        batchData = data[start:end]
 
-        # TODO: thinnk of doing this with matrix multiplication
-        # for all the data instances in a batch
-        # now that the weights do not chaneg you can do it
-        batchWeights = zerosFromShape(self.weights)
-        batchBiases = zerosFromShape(self.biases)
-        for i in xrange(start, end):
-          d = data[i]
+        # this is a list of layer activities
+        layerValues = self.forwardPass(batchData)
 
-          # this is a list of layer activities
-          layerValues = self.forwardPass(d)
+        finalLayerErrors = outputDerivativesCrossEntropyErrorFunction(labels[start:end],
+                                            layerValues[-1])
 
-          finalLayerErrors = outputDerivativesCrossEntropyErrorFunction(labels[i],
-                                              layerValues[-1])
-
-          # Compute all derivatives
-          dWeights, dBias = backprop(self.weights, layerValues,
-                              finalLayerErrors, self.activationFunctions)
-          # might be better to compute the sum here
-          batchWeights = [i + j for i,j in zip(batchWeights, dWeights)]
-          batchBiases =  [i + j for i,j in zip(batchBiases, dBias)]
-
-        # Momentum updates
-        for index in xrange(nrWeightMatrices):
-          batchWeights[index] += momentum * oldDWeights[index]
+        # Computes all derivatives
+        dWeights, dBias = backprop(self.weights, layerValues,
+                            finalLayerErrors, self.activationFunctions)
 
         for index in xrange(nrWeightMatrices):
-          batchBiases[index] += momentum * oldDBias[index]
+          dWeights[index] += momentum * oldDWeights[index]
+
+
+        for index in xrange(nrWeightMatrices):
+          dBias[index] += momentum * oldDBias[index]
 
         # Update the oldweights
-        oldDWeights = batchWeights
-        oldDBias = batchBiases
+        oldDWeights = dWeights
+        oldDBias = dBias
 
         # Update the weights using gradient descent
         for index, dw in enumerate(dWeights):
