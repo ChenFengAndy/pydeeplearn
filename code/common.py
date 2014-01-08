@@ -78,7 +78,9 @@ class Softmax(ActivationFunction):
 
   def derivativeForLinearSum(self, topLayerDerivatives, topLayerActivations):
     # TODO: write it as matrix multiplication
-    d = - np.outer(topLayerActivations, topLayerActivations)
+    # TODO: kroneker delta for indices?
+    d = - topLayerActivations[..., np.newaxis, :] * topLayerActivations[:, np.newaxis, ...]
+
     d[np.diag_indices_from(d)] = topLayerActivations * (1 - topLayerActivations)
     return np.dot(topLayerDerivatives, d)
 

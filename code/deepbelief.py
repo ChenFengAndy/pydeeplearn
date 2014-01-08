@@ -100,7 +100,7 @@ class DBN(object):
       epochs: The number of epochs to use for fine tuning
   """
   # TODO: implement the minibatch business
-  def fineTune(self, data, labels, miniBatchSize=1, epochs=100):
+  def fineTune(self, data, labels, miniBatchSize=10, epochs=100):
     learningRate = 0.01
     batchLearningRate = learningRate / miniBatchSize
 
@@ -123,46 +123,46 @@ class DBN(object):
         start = batch * miniBatchSize
         end = (batch + 1) * miniBatchSize
 
+        batchWeights = zerosFromShape(self.weights)
+        batchBiases = zerosFromShape(self.biases)
+
         # TODO: thinnk of doing this with matrix multiplication
         # for all the data instances in a batch
         # now that the weights do not chaneg you can do it
-        batchWeights = zerosFromShape(self.weights)
-        batchBiases = zerosFromShape(self.biases)
-        for i in xrange(start, end):
-          d = data[i]
+        batchData = data[start: end, :]
 
-          # this is a list of layer activities
-          layerValues = self.forwardPass(d)
+        # this is a list of layer activities
+        layerValues = self.forwardPass(batchData)
 
-          finalLayerErrors = outputDerivativesCrossEntropyErrorFunction(labels[i],
-                                              layerValues[-1])
+        # This would be the sum of the entire error
+        finalLayerErrors = outputDerivativesCrossEntropyErrorFunction(labels[start:end],
+                                            layerValues[-1])
 
-          # Compute all derivatives
-          # nice comment on what this is and that it is a 3d matrix
+        # Compute all derivatives
+        # nice comment on what this is and that it is a 3d matrix
+        dWeights, dBias = backprop(self.weights, layerValues,
+                            finalLayerErrors, self.activationFunctions)
 
-          dWeights, dBias = backprop(self.weights, layerValues,
-                              finalLayerErrors, self.activationFunctions)
-          # might be better to compute the sum here
-          batchWeights = [i + j for i,j in zip(batchWeights, dWeights)]
-          batchBiases =  [i + j for i,j in zip(batchBiases, dBias)]
-
+        # TODO:
+        # here do not keep 2 variables (batchweights is uselss, just keep Dweights as oldDweights)
         # Momentum updates
+        # is it with minus momentum?
         for index in xrange(nrWeightMatrices):
-          batchWeights[index] += momentum * oldDWeights[index]
+          batchWeights[index] = momentum * oldDWeights[index] + dWeights[index].sum()
 
         for index in xrange(nrWeightMatrices):
-          batchBiases[index] += momentum * oldDBias[index]
+          batchBiases[index] = momentum * oldDBias[index] + dbias[index].sum()
 
         # Update the oldweights
         oldDWeights = batchWeights
         oldDBias = batchBiases
 
         # Update the weights using gradient descent
-        for index, dw in enumerate(dWeights):
+        for index, dw in enumerate(oldDWeights):
           self.weights[index] -= batchLearningRate * dw
 
         # Update the biases using gradient descent
-        for index, dBias in enumerate(dBias):
+        for index, dBias in enumerate():
           self.biases[index] -= batchLearningRate * dBias
 
 
@@ -211,6 +211,8 @@ Arguments:
   finalLayerErrors: errors on the final layer, they depend on the error function
       chosen. For softmax activation function on the last layer, use cross
       entropy as an error function.
+Returns: a list of 3d matrices if finalLayerErrors and layerValues refer to multiple
+          layers or a list of 2d matrices if they refer to one singe layer.
 """
 def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
   nrLayers = len(weights) + 1
@@ -255,9 +257,10 @@ Arguments:
       These were obtained by doing a forward pass in the network.
 """
 def derivativesForBottomLayer(layerWeights, layerActivations, derivativesWrtLinearInputSum):
+  # TODO: check this does what it should do
   bottomLayerDerivatives = np.dot(layerWeights, derivativesWrtLinearInputSum)
 
-  weightDerivatives = np.outer(layerActivations, derivativesWrtLinearInputSum)
-  # assert layerWeights.shape == weightDerivatives.shape
+  # Black magic
+  weightDerivatives = layerActivations[..., np.newaxis, :] * derivativesWrtLinearInputSum[:, np.newaxis, ...]
 
   return weightDerivatives, bottomLayerDerivatives, derivativesWrtLinearInputSum

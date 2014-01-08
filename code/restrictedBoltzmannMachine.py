@@ -9,6 +9,7 @@ do updates in parallel using multiprocessing.pool
 TODO: monitor overfitting
 TODO: weight decay (to control overfitting and other things)
 TODO: mean filed and dumped mean field
+TODO: change the mini-batch method to do the sum thing
 
 """
 import numpy as np
