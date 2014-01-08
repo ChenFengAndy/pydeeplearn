@@ -239,7 +239,8 @@ Arguments:
 def derivativesForBottomLayer(layerWeights, y, derivativesWrtLinearInputSum):
   bottomLayerDerivatives = np.dot(layerWeights, derivativesWrtLinearInputSum)
 
-  weightDerivatives = np.outer(y, derivativesWrtLinearInputSum)
+  weightDerivatives = layerActivations[..., np.newaxis, :] * derivativesWrtLinearInputSum[:, np.newaxis, ...]
+
   # assert layerWeights.shape == weightDerivatives.shape
 
   return weightDerivatives, bottomLayerDerivatives, derivativesWrtLinearInputSum
