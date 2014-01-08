@@ -100,7 +100,7 @@ class DBN(object):
       epochs: The number of epochs to use for fine tuning
   """
   # TODO: implement the minibatch business
-  def fineTune(self, data, labels, miniBatchSize=10, epochs=100):
+  def fineTune(self, data, labels, miniBatchSize=8, epochs=100):
     learningRate = 0.01
     batchLearningRate = learningRate / miniBatchSize
 
@@ -139,7 +139,7 @@ class DBN(object):
                                             layerValues[-1])
 
         # Compute all derivatives
-        # nice comment on what this is and that it is a 3d matrix
+        # nice comment on what this is and that it is a list of 3d matrices
         dWeights, dBias = backprop(self.weights, layerValues,
                             finalLayerErrors, self.activationFunctions)
 
@@ -148,10 +148,10 @@ class DBN(object):
         # Momentum updates
         # is it with minus momentum?
         for index in xrange(nrWeightMatrices):
-          batchWeights[index] = momentum * oldDWeights[index] + dWeights[index].sum()
+          batchWeights[index] = momentum * oldDWeights[index] + dWeights[index]
 
         for index in xrange(nrWeightMatrices):
-          batchBiases[index] = momentum * oldDBias[index] + dbias[index].sum()
+          batchBiases[index] = momentum * oldDBias[index] + dbias[index]
 
         # Update the oldweights
         oldDWeights = batchWeights
@@ -258,9 +258,14 @@ Arguments:
 """
 def derivativesForBottomLayer(layerWeights, layerActivations, derivativesWrtLinearInputSum):
   # TODO: check this does what it should do
-  bottomLayerDerivatives = np.dot(layerWeights, derivativesWrtLinearInputSum)
+  bottomLayerDerivatives = np.dot(derivativesWrtLinearInputSum, layerWeights.T)
 
   # Black magic
-  weightDerivatives = layerActivations[..., np.newaxis, :] * derivativesWrtLinearInputSum[:, np.newaxis, ...]
+  # weightDerivatives = layerActivations[..., np.newaxis, :] * derivativesWrtLinearInputSum[:, np.newaxis, ...]
+
+  for activation, d in zip(layerActivations, derivativesWrtLinearInputSum):
+
+
+
 
   return weightDerivatives, bottomLayerDerivatives, derivativesWrtLinearInputSum

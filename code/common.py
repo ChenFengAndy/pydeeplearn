@@ -79,10 +79,13 @@ class Softmax(ActivationFunction):
   def derivativeForLinearSum(self, topLayerDerivatives, topLayerActivations):
     # TODO: write it as matrix multiplication
     # TODO: kroneker delta for indices?
-    d = - topLayerActivations[..., np.newaxis, :] * topLayerActivations[:, np.newaxis, ...]
+    res = []
+    for row in topLayerActivations:
+      d = - np.outer(row, row)
+      d[np.diag_indices_from(d)] += topLayerActivations
+      res.append(np.dot(topLayerDerivatives, d))
 
-    d[np.diag_indices_from(d)] = topLayerActivations * (1 - topLayerActivations)
-    return np.dot(topLayerDerivatives, d)
+    return np.array(res)
 
 """ Implementation of the sigmoid activation function."""
 class Sigmoid(ActivationFunction):
