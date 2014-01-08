@@ -124,11 +124,10 @@ class DBN(object):
         end = (batch + 1) * miniBatchSize
         batchData = data[start:end]
 
-        # this is a list of layer activities
+        # this is a list of layer activities for all the data instances
         layerValues = self.forwardPass(batchData)
-
-        finalLayerErrors = outputDerivativesCrossEntropyErrorFunction(labels[start:end],
-                                            layerValues[-1])
+        finalLayerErrors = outputDerivativesCrossEntropyErrorFunction(
+                              labels[start:end], layerValues[-1])
 
         # Computes all derivatives
         dWeights, dBias = backprop(self.weights, layerValues,
@@ -237,10 +236,11 @@ Arguments:
       These were obtained by doing a forward pass in the network.
 """
 def derivativesForBottomLayer(layerWeights, y, derivativesWrtLinearInputSum):
+  print layerWeights.shape
+  print derivativesWrtLinearInputSum.shape
   bottomLayerDerivatives = np.dot(layerWeights, derivativesWrtLinearInputSum)
 
-  weightDerivatives = layerActivations[..., np.newaxis, :] * derivativesWrtLinearInputSum[:, np.newaxis, ...]
-
+  weightDerivatives = np.outer(y, derivativesWrtLinearInputSum)
   # assert layerWeights.shape == weightDerivatives.shape
 
   return weightDerivatives, bottomLayerDerivatives, derivativesWrtLinearInputSum

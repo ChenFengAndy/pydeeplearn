@@ -41,6 +41,9 @@
 ## Backpropagation and gradient descent methods
   introduction bla bla
 
+  quote this
+  http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
+
 ### Error function
   Talk about it's importance in backprop and mention MSE and Gaussian assumption
 
