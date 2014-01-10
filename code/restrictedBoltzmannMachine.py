@@ -28,11 +28,12 @@ sparsity = 0.1
 """
 class RBM(object):
 
-  def __init__(self, nrVisible, nrHidden, trainingFunction):
+  def __init__(self, nrVisible, nrHidden, trainingFunction, activationFun=sigmoid):
     # Initialize weights to random
     self.nrHidden = nrHidden
     self.nrVisible = nrVisible
     self.trainingFunction = trainingFunction
+    self.activationFun = activationFun
     self.initialized = False
 
   def train(self, data):
@@ -47,14 +48,10 @@ class RBM(object):
 
     self.biases, self.weights = self.trainingFunction(data,
                                                       self.biases,
-                                                      self.weights)
-    assert self.weights.shape == (self.nrVisible, self.nrHidden)
-    print self.biases[0].shape
-    print "nrVisible" + str(self.nrVisible)
+                                                      self.weights,
+                                                      self.activationFun)
+    # assert self.weights.shape == (self.nrVisible, self.nrHidden)
     # assert self.biases[0].shape == self.nrVisible
-
-    print self.biases[1].shape
-    print "nrHidden" + str(self.nrHidden)
     # assert self.biases[1].shape == self.nrHidden
 
   """ Reconstructs the data given using this boltzmann machine."""
@@ -62,7 +59,8 @@ class RBM(object):
     return reconstruct(self.biases, self.weights, dataInstances)
 
   def hiddenRepresentation(self, dataInstances):
-    return updateLayer(Layer.HIDDEN, dataInstances, self.biases, self.weights, True)
+    return updateLayer(Layer.HIDDEN, dataInstances, self.biases,
+                       self.weights, self.activationFun, True)
 
   @classmethod
   def initializeWeights(cls, nrVisible, nrHidden):
@@ -111,7 +109,7 @@ Defaults the mini batch size 1, so normal learning
 # optimize the code but also make it easier to change them
 # rather than have a function  that you pass in for every batch
 # if nice and easy refactoring can be seen then you can do that
-def contrastiveDivergence(data, biases, weights, miniBatchSize=10):
+def contrastiveDivergence(data, biases, weights, activationFun, miniBatchSize=10):
   N = len(data)
 
   epochs = N / miniBatchSize
@@ -153,8 +151,8 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=10):
         print reconstructionError(biases, weights, data)
 
     weightsDiff, visibleBiasDiff, hiddenBiasDiff =\
-            modelAndDataSampleDiffs(batchData, biases, weights)
-
+            modelAndDataSampleDiffs(batchData, biases, weights,
+            activationFun)
     # Update the weights
     # data - model
     # Positive phase - negative
@@ -183,22 +181,22 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=10):
 
   return biases, weights
 
-def modelAndDataSampleDiffs(batchData, biases, weights, cdSteps=1):
+def modelAndDataSampleDiffs(batchData, biases, weights, activationFun,cdSteps=1):
   # Reconstruct the hidden weigs from the data
-  hidden = updateLayer(Layer.HIDDEN, batchData, biases, weights, True)
+  hidden = updateLayer(Layer.HIDDEN, batchData, biases, weights, activationFun, True)
   hiddenReconstruction = hidden
 
   for i in xrange(cdSteps - 1):
     visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
-                                        biases, weights, False)
+                                        biases, weights, activationFun, binary=False)
     hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
-                                       biases, weights, True)
+                                       biases, weights, activationFun, binary=True)
 
   # Do the last reconstruction from the probabilities in the last phase
   visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
-                                      biases, weights, False)
+                                      biases, weights, activationFun, binary=False)
   hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
-                                     biases, weights, False)
+                                     biases, weights, activationFun, binary=False)
 
   s = theta * sparsity + (1 - theta) * hidden
 
@@ -219,35 +217,16 @@ def modelAndDataSampleDiffs(batchData, biases, weights, cdSteps=1):
 # not probabilities
 
 """ Updates an entire layer. This procedure can be used both in training
-    and in testing. Does not use matrix multiplication, so it is slower then
-    the updateLayer method.
-"""
-def updateLayerSingle(layer, otherLayerValues, biases, weightMatrix, binary=False):
-  bias = biases[layer]
-
-  def activation(x):
-    w = weightVectorForNeuron(layer, weightMatrix, x)
-    return activationProbability(w, bias[x], otherLayerValues)
-
-  # He said we can update these in parallel but when doing the multibatch that cannot be anymore
-  probs = map(activation, xrange(weightMatrix.shape[layer]))
-  probs = np.array(probs)
-
-  if binary:
-    # Sample from the distributions
-    return sampleAll(probs)
-
-  return probs
-
-""" Updates an entire layer. This procedure can be used both in training
     and in testing.
     Can even take multiple values of the layer, each of them given as rows
     Uses matrix operations.
 """
-def updateLayer(layer, otherLayerValues, biases, weights, binary=False):
+def updateLayer(layer, otherLayerValues, biases, weights, activationFun, binary=False):
   bias = biases[layer]
 
   # TODO: think about doing this better
+  # better: remove it like in the deepbelief, do not support version for single one
+  # in reconstruction
   if len(otherLayerValues.shape) == 2:
     size = otherLayerValues.shape[0]
   else:
@@ -258,36 +237,13 @@ def updateLayer(layer, otherLayerValues, biases, weights, binary=False):
   else:
     activation = np.dot(otherLayerValues, weights)
 
-  probs = sigmoid(np.tile(bias, (size, 1)) + activation)
+  probs = activationFun(np.tile(bias, (size, 1)) + activation)
 
   if binary:
     # Sample from the distributions
     return sampleAll(probs)
 
   return probs
-
-"""Function kept in case we go back to trying to make things in parallel
-and not with matrix stuff. """
-def weightVectorForNeuron(layer, weightMatrix, neuronNumber):
-  if layer == Layer.VISIBLE:
-    return weightMatrix[neuronNumber, :]
-  # else layer == Layer.HIDDEN
-  return weightMatrix[:, neuronNumber]
-
-# Made in one function to increase speed
-def activationProbability(weights, bias, otherLayerValues):
-  return sigmoid(bias + np.dot(weights, otherLayerValues))
-
-def activationSum(weights, bias, otherLayerValues):
-  return bias + np.dot(weights, otherLayerValues)
-
-""" Gets the activation sums for all the units in one layer.
-    Assumesthat the dimensions of the weihgt matrix and biases
-    are given correctly. It will throw an exception otherwise.
-"""
-
-# def activationProbability(activationSum):
-#   return sigmoid(activationSum)
 
 # Another training algorithm. Slower than Contrastive divergence, but
 # gives better results. Not used in practice as it is too slow.
