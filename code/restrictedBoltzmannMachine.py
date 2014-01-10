@@ -154,6 +154,7 @@ def contrastiveDivergence(data, biases, weights, miniBatchSize=10):
 
     weightsDiff, visibleBiasDiff, hiddenBiasDiff =\
             modelAndDataSampleDiffs(batchData, biases, weights)
+
     # Update the weights
     # data - model
     # Positive phase - negative
@@ -199,13 +200,15 @@ def modelAndDataSampleDiffs(batchData, biases, weights, cdSteps=1):
   hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
                                      biases, weights, False)
 
-  weightsDiff = np.dot(batchData.T, hidden) - np.dot(visibleReconstruction.T, hiddenReconstruction)
-  assert weightsDiff.shape == weights.shape
+  s = theta * sparsity + (1 - theta) * hidden
+
+  weightsDiff = np.dot(batchData.T, s) - np.dot(visibleReconstruction.T, hiddenReconstruction)
+  # assert weightsDiff.shape == weights.shape
   visibleBiasDiff = np.sum(batchData - visibleReconstruction, axis=0)
 
-  assert visibleBiasDiff.shape == biases[0].shape
-  hiddenBiasDiff = np.sum(hidden - hiddenReconstruction, axis=0)
-  assert hiddenBiasDiff.shape == biases[1].shape
+  # assert visibleBiasDiff.shape == biases[0].shape
+  hiddenBiasDiff = np.sum(s - hiddenReconstruction, axis=0)
+  # assert hiddenBiasDiff.shape == biases[1].shape
 
   return weightsDiff, visibleBiasDiff, hiddenBiasDiff
 
