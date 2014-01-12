@@ -75,6 +75,7 @@ class DBN(object):
       self.biases += [net.biases[1]]
 
       currentData = net.hiddenRepresentation(currentData)
+      # print currentData
 
     # CHECK THAT
     self.weights += [np.random.normal(0, 0.01,
