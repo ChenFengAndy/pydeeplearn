@@ -17,6 +17,8 @@ import math
 import multiprocessing
 import logging
 
+from common import *
+
 # Do not print unless needed
 logging.basicConfig(level=logging.CRITICAL)
 # Global multiprocessing pool, used for all updates in the networks
@@ -50,6 +52,7 @@ class RBM(object):
   def train(self):
     self.biases, self.weights = self.trainingFunction(self.data, self.biases, self.weights)
     recons = np.array(map(self.reconstruct, self.data))
+    print "reconstructError"
     print rmse(recons, self.data)
 
   def reconstruct(self, dataInstance):
@@ -175,7 +178,6 @@ def updateLayer(layer, otherLayerValues, biases, weightMatrix, binary=False):
     return sampleAll(probs)
 
   return probs
-
 
 def weightVectorForNeuron(layer, weightMatrix, neuronNumber):
   if layer == Layer.VISIBLE:

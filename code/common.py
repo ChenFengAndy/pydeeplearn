@@ -21,3 +21,6 @@ Returns:
 """
 def imagesToVectors(images):
   return scipy.array(map(lambda x: x.reshape(-1), images))
+
+def rmse(prediction, actual):
+  return np.linalg.norm(prediction - actual) / np.sqrt(len(prediction))
