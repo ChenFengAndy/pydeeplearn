@@ -49,6 +49,8 @@ class RBM(object):
   # you need to take a training algorithm as a parameter (CD, PCD)
   def train(self):
     self.biases, self.weights = self.trainingFunction(self.data, self.biases, self.weights)
+    recons = np.array(map(self.reconstruct, self.data))
+    print rmse(recons, self.data)
 
   def reconstruct(self, dataInstance):
     hidden = updateLayer(Layer.HIDDEN, dataInstance, self.biases, self.weights, True)
@@ -144,6 +146,8 @@ def contrastiveDivergenceStep(data, biases, weights, cdSteps=1):
     biases[0] += epsilon * (visible - visibleReconstruction)
     # Update the hidden biases
     biases[1] += epsilon * (hidden - hiddenReconstruction)
+
+
   return biases, weights
 
 
