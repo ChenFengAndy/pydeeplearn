@@ -190,7 +190,6 @@ def forwardPass(weights, biases, activationFunctions, dataInstaces):
   return layerValues
 
 
-
 """Does a forward pass trought the network and computes the values of the
     neurons in all the layers.
     Required for backpropagation and classification.
