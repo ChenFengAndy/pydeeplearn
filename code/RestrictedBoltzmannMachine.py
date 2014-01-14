@@ -142,12 +142,8 @@ def contrastiveDivergenceStep(data, biases, weights, cdSteps=1):
 
     # Update the visible biases
     biases[0] += epsilon * (visible - visibleReconstruction)
-    print "visibleBiases"
-    print biases[0]
     # Update the hidden biases
     biases[1] += epsilon * (hidden - hiddenReconstruction)
-    print "hiddenBiases"
-    print biases[0]
   return biases, weights
 
 
