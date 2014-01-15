@@ -102,12 +102,12 @@ Defaults the mini batch size 1, so normal learning
 # optimize the code but also make it easier to change them
 # rather than have a function  that you pass in for every batch
 # if nice and easy refactoring can be seen then you can do that
-def contrastiveDivergence(data, biases, weights, activationFun, dropout, miniBatchSize=10):
+def contrastiveDivergence(data, biases, weights, activationFun, dropout, miniBatchSize=1):
   N = len(data)
 
   epochs = N / miniBatchSize
 
-  epsilon = 0.01
+  epsilon = 0.0001
   decayFactor = 0.0002
   weightDecay = True
   reconstructionStep = 50
@@ -169,7 +169,7 @@ def contrastiveDivergence(data, biases, weights, activationFun, dropout, miniBat
     # Update the hidden biases
     biases[1] += deltaHidden
 
-  print reconstructionError(biases, weights, data, activationFun)
+  # print reconstructionError(biases, weights, data, activationFun)
   return biases, weights
 
 def modelAndDataSampleDiffs(batchData, biases, weights, activationFun,
