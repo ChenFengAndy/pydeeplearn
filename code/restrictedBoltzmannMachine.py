@@ -65,7 +65,7 @@ class RBM(object):
     # get the procentage of data points that have the i'th unit on
     # and set the visible vias to log (p/(1-p))
     percentages = data.mean(axis=0, dtype='float')
-    vectorized = np.vectorize(safeLogFraction, otypes=[np.float])
+    vectorized = np.vectorize(safeLogFraction, otypes=[np.int])
     visibleBiases = vectorized(percentages)
 
     hiddenBiases = np.zeros(nrHidden)
