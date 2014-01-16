@@ -156,7 +156,7 @@ def pca(train, dimension):
     result += [vector]
     index = index + 1
 
-  return result
+  return np.array(result)
 
 """
 Arguments:
@@ -216,23 +216,20 @@ def getEigenFaces(pcaMethod, images, dimension=None):
 
 def reduce(principalComponents, vectors):
   assert len(principalComponents) > 0
-
   # the size of a principal component is the same with the size of the data
-  principalComponents = np.array(principalComponents)
-
   lowDimRepresentation  = np.dot(vectors, principalComponents.T)
-  print lowDimRepresentation.shape
-  print lowDimRepresentation[:, np.newaxis].shape
+  return lowDimRepresentation
+
+def backToHighDim(principalComponents, lowDimRepresentation):
   # lowDimRepresentation = map(lambda x : vectors.dot(x), principalComponents)
-  sameDimRepresentation = \
-    sum([ x * y for x, y in zip(principalComponents, lowDimRepresentation)])
+  # sameDimRepresentation = \
+  #   sum([ x * y for x, y in zip(principalComponents, lowDimRepresentation)])
   # TODO: do this with einsum
+  # split the data into chunks of 10000 (see if 10000 fits in memory in lab machines)
+  # in case it does do them one after the other
   sameDimRepresentation = lowDimRepresentation[:, np.newaxis] * principalComponents.T
   sameDimRepresentation = sameDimRepresentation.sum(axis=2)
-  # TODO: create the proper thing here so that you can
-  # easily see what the ouput is
-  return  (lowDimRepresentation, sameDimRepresentation)
-
+  return sameDimRepresentation
 
 """
  Reduces a 2D image represented by a numpy 2D array of integer values(pixels)
