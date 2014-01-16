@@ -154,6 +154,9 @@ def deepbeliefMain():
     net = pickle.load(f)
     f.close()
 
+  if args.reduce:
+    testingScaledVectors = PCA.reduce(res, testingScaledVectors)
+    testingScaledVectors = utils.scale_to_unit_interval(testingScaledVectors)
 
   probs, predicted = net.classify(testingScaledVectors)
   correct = 0
