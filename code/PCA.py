@@ -217,14 +217,15 @@ def getEigenFaces(pcaMethod, images, dimension=None):
 def reduce(principalComponents, vectors):
   assert len(principalComponents) > 0
 
-  print principalComponents[0].shape
-
+  # the size of a principal component is the same with the size of the data
   principalComponents = np.array(principalComponents)
 
   lowDimRepresentation  = np.dot(vectors, principalComponents.T)
+  print lowDimRepresentation.shape
+  print lowDimRepresentation[:, np.newaxis].shape
   # lowDimRepresentation = map(lambda x : vectors.dot(x), principalComponents)
-  # sameDimRepresentation = \
-  #   sum([ x * y for x, y in zip(principalComponents, lowDimRepresentation)])
+  sameDimRepresentation = \
+    sum([ x * y for x, y in zip(principalComponents, lowDimRepresentation)])
   # TODO: do this with einsum
   sameDimRepresentation = lowDimRepresentation[:, np.newaxis] * principalComponents.T
   sameDimRepresentation = sameDimRepresentation.sum(axis=2)
