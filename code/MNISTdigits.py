@@ -26,6 +26,8 @@ parser.add_argument('--rbm', dest='rbm',action='store_true', default=False,
 parser.add_argument('--db', dest='db',action='store_true', default=False,
                     help=("if true, the code for traning a deepbelief net on the"
                           "data is run"))
+parser.add_argument('--reduce', dest='reduce',action='store_true', default=False,
+                    help=("if true, training data is reduced using PCA"))
 parser.add_argument('--trainSize', type=int, default=10000,
                     help='the number of tranining cases to be considered')
 parser.add_argument('--testSize', type=int, default=1000,
@@ -111,13 +113,10 @@ def pcaOnMnist(training, dimension=700):
   print "done"
 
 def deepbeliefMain():
-  training = args.trainSize
-  testing = args.testSize
-
   trainVectors, trainLabels =\
-      readmnist.read(0, training, bTrain=True, path="MNIST")
+      readmnist.read(0, args.trainSize, bTrain=True, path="MNIST")
   testVectors, testLabels =\
-      readmnist.read(0, testing, bTrain=False, path="MNIST")
+      readmnist.read(0, args.testSize, bTrain=False, path="MNIST")
   print trainVectors[0].shape
 
   trainVectors, trainLabels = shuffle(trainVectors, trainLabels)
@@ -128,14 +127,27 @@ def deepbeliefMain():
   vectorLabels = labelsToVectors(trainLabels, 10)
 
   if args.train:
-    # net = db.DBN(3, [784, 500, 10], [Sigmoid(), Softmax()])
-    # net = db.DBN(4, [784, 500, 500, 10], [Sigmoid, Sigmoid, Softmax])
+    if args.reduce:
+      dimension = 700
+      res = PCA.pca(trainVectors, dimension)
+      low = PCA.reduce(res, trainVectors)
 
-    net = db.DBN(5, [784, 1000, 1000, 1000, 10],
-                 [Sigmoid, Sigmoid, Sigmoid, Softmax],
-                 0.5, 0.8)
-    # TODO: think about what the network should do for 2 layers
-    net.train(trainingScaledVectors, vectorLabels)
+      low = utils.scale_to_unit_interval(low)
+      net = db.DBN(5, [dimension, 500, 500, 500, 10],
+                   [Sigmoid, Sigmoid, Sigmoid, Softmax],
+                   0.5, 0.8)
+      # is this between 0 1?
+      net.train(low, vectorLabels)
+    else:
+      # net = db.DBN(3, [784, 500, 10], [Sigmoid(), Softmax()])
+      # net = db.DBN(4, [784, 500, 500, 10], [Sigmoid, Sigmoid, Softmax])
+
+      net = db.DBN(5, [784, 1000, 1000, 1000, 10],
+                   [Sigmoid, Sigmoid, Sigmoid, Softmax],
+                   0.5, 0.8)
+      # TODO: think about what the network should do for 2 layers
+      net.train(trainingScaledVectors, vectorLabels)
+
   else:
     # Take the saved network and use that for reconstructions
     f = open(args.netFile, "rb")

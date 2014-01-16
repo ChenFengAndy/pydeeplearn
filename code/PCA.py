@@ -227,9 +227,7 @@ def backToHighDim(principalComponents, lowDimRepresentation):
   # TODO: do this with einsum
   # split the data into chunks of 10000 (see if 10000 fits in memory in lab machines)
   # in case it does do them one after the other
-  sameDimRepresentation = lowDimRepresentation[:, np.newaxis] * principalComponents.T
-  sameDimRepresentation = sameDimRepresentation.sum(axis=2)
-  return sameDimRepresentation
+  return np.einsum('ij,jl->il', lowDimRepresentation, principalComponents)
 
 """
  Reduces a 2D image represented by a numpy 2D array of integer values(pixels)
