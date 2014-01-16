@@ -104,12 +104,16 @@ def pca(train, dimension):
   u = convertDataToZeroMean(train)
 
   # Less data points than the dimensionality of the data
+  # if True:
   if rows < cols:
     # Step2: Compute the eigen values of the U * U^T matrix
     # the size of U * U^T is rows * rows (ie the number of data points you have
     # in your training)
-    eigVals, eigVecs = scipy.linalg.eig(u.dot(u.T))
-    # Step3: Compute the eigen values of U^T*U from the eigen values of U * U^T
+    # Use eigh as matrix is symmetric
+    # Important note: the eigen vectors are on the COLUMNS of the returned matrix
+    # not on the rows
+    eigVals, eigVecs = scipy.linalg.eigh(u.dot(u.T))
+    # Step3: Compute the eigen vectors of U^T*U from the eigen vectors of U * U^T
     bigEigVecs = numpy.zeros((rows, cols))
 
     for i in xrange(rows):
@@ -117,11 +121,16 @@ def pca(train, dimension):
 
     # Step 4: Normalize the eigen vectors to get orthonormal components
     eigVecs = map(lambda x: x / scipy.linalg.norm(x), bigEigVecs)
+
   # More data points than the dimensionality of the data
   else:
-    eigVals, eigVecs = scipy.linalg.eig(u.T.dot(u))
+    # Use eigh as matrix is symmetric
+    # Important note: the eigen vectors are on the COLUMNS of the returned matrix
+    # not on the rows
+    eigVals, eigVecs = scipy.linalg.eigh((u.T).dot(u))
+    eigVecs = eigVecs.T
 
-  eigValsBigVecs = zip(eigVals, eigVals)
+  eigValsBigVecs = zip(eigVals, eigVecs)
   sortedEigValsBigVecs = sorted(eigValsBigVecs, key=lambda x : x[0], reverse=True)
 
   index = 0
@@ -136,8 +145,8 @@ def pca(train, dimension):
     dimension = dimensionFromEigenTotalVariance(eigenValues)
     print "Using PCA dimension " + str(dimension)
 
-
   for eigVal, vector in sortedEigValsBigVecs:
+    # print eigVal
     if index >= dimension:
       break
 

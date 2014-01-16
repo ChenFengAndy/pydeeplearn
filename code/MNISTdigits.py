@@ -100,9 +100,9 @@ def pcaOnMnist(training, dimension=700):
   low, same = PCA.reduce(res, training)
 
   image2DInitial = vectorToImage(training[0], (28,28))
-  print same[0].shape
   image2D = vectorToImage(same[0], (28,28))
 
+  # print image2D
   plt.imshow(image2DInitial, cmap=plt.cm.gray)
   plt.show()
   plt.imshow(image2D, cmap=plt.cm.gray)
