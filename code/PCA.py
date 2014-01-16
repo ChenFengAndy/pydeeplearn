@@ -103,21 +103,25 @@ def pca(train, dimension):
   # Ie create the average image
   u = convertDataToZeroMean(train)
 
-  # Step2: Compute the eigen values of the U * U^T matrix
-  # the size of U * U^T is rows * rows (ie the number of data points you have
-  # in your training)
-  eigVals, eigVecs = scipy.linalg.eig(u.dot(u.T))
+  # Less data points than the dimensionality of the data
+  if rows < cols:
+    # Step2: Compute the eigen values of the U * U^T matrix
+    # the size of U * U^T is rows * rows (ie the number of data points you have
+    # in your training)
+    eigVals, eigVecs = scipy.linalg.eig(u.dot(u.T))
+    # Step3: Compute the eigen values of U^T*U from the eigen values of U * U^T
+    bigEigVecs = numpy.zeros((rows, cols))
 
+    for i in xrange(rows):
+      bigEigVecs[i] = u.T.dot(eigVecs[:, i])
 
-  # Step3: Compute the eigen values of U^T*U from the eigen values of U * U^T
-  bigEigVecs = numpy.zeros((rows, cols))
-  for i in xrange(rows):
-    bigEigVecs[i] = u.T.dot(eigVecs[:, i])
+    # Step 4: Normalize the eigen vectors to get orthonormal components
+    eigVecs = map(lambda x: x / scipy.linalg.norm(x), bigEigVecs)
+  # More data points than the dimensionality of the data
+  else:
+    eigVals, eigVecs = scipy.linalg.eig(u.T.dot(u))
 
-  # Step 4: Normalize the eigen vectors to get orthonormal components
-  bigEigVecs = map(lambda x: x / scipy.linalg.norm(x), bigEigVecs)
-
-  eigValsBigVecs = zip(eigVals, bigEigVecs)
+  eigValsBigVecs = zip(eigVals, eigVals)
   sortedEigValsBigVecs = sorted(eigValsBigVecs, key=lambda x : x[0], reverse=True)
 
   index = 0
