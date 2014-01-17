@@ -203,7 +203,7 @@ Returns:
 """
 def getEigenFaces(pcaMethod, images, dimension=None):
 
-  imgSize = images[0].shape;
+  imgSize = images[0].shape
   # this call should not be here: the code should assume that the images have
   # been transofrmed to vectors before
   imgs = imagesToVectors(images)
