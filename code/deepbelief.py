@@ -1,6 +1,7 @@
 import numpy as np
 
 import restrictedBoltzmannMachine as rbm
+import time
 
 # TODO: use conjugate gradient for  backpropagation instead of stepeest descent
 # TODO: add weight decay in back prop but especially with the constraint
@@ -14,6 +15,9 @@ import restrictedBoltzmannMachine as rbm
 layer above the current one."""
 
 from common import *
+
+dottime = 0
+
 
 """ Class that implements a deep blief network, for classifcation """
 class DBN(object):
@@ -94,6 +98,8 @@ class DBN(object):
       epochs: The number of epochs to use for fine tuning
   """
   def fineTune(self, data, labels, miniBatchSize=10, epochs=100):
+    global dottime
+
     learningRate = 0.1
     batchLearningRate = learningRate / miniBatchSize
 
@@ -136,6 +142,7 @@ class DBN(object):
           self.weights[index] -= oldDWeights[index]
           self.biases[index] -= oldDBias[index]
 
+      print dottime
 
   def classify(self, dataInstaces):
     lastLayerValues = forwardPass(self.classifcationWeights,
@@ -153,7 +160,9 @@ Arguments:
       chosen. For softmax activation function on the last layer, use cross
       entropy as an error function.
 """
+
 def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
+  global dottime
   nrLayers = len(weights) + 1
   deDw = []
   deDbias = []
@@ -162,7 +171,9 @@ def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
   for layer in xrange(nrLayers - 1, 0, -1):
     deDz = activationFunctions[layer - 1].derivativeForLinearSum(
                             upperLayerErrors, layerValues[layer])
+    current = time.time()
     upperLayerErrors = np.dot(deDz, weights[layer - 1].T)
+    dottime += time.time() - current
 
     dw = np.einsum('ij,ik->jk', layerValues[layer - 1], deDz)
 
