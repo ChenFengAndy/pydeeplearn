@@ -133,8 +133,8 @@ def deepbeliefMain():
       low = PCA.reduce(res, trainVectors)
 
       low = utils.scale_to_unit_interval(low)
-      net = db.DBN(5, [dimension, 500, 500, 500, 10],
-                   [Sigmoid, Sigmoid, Sigmoid, Softmax],
+      net = db.DBN(4, [dimension, 500, 500, 10],
+                   [Sigmoid, Sigmoid, Softmax],
                    0.5, 0.8)
       # is this between 0 1?
       net.train(low, vectorLabels)
@@ -160,7 +160,7 @@ def deepbeliefMain():
 
   probs, predicted = net.classify(testingScaledVectors)
   correct = 0
-  for i in xrange(testing):
+  for i in xrange(args.testSize):
     print "predicted"
     print "probs"
     print probs[i]

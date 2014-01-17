@@ -4,6 +4,8 @@ TODO:
 
   implment NeRelu
 
+  incoming constraints on l2 norms
+
    try to increase the momentum in the RBM class
 
    rettry tanh at some point
