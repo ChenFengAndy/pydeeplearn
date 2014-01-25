@@ -172,8 +172,7 @@ def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
   for layer in xrange(nrLayers - 1, 0, -1):
     deDz = activationFunctions[layer - 1].derivativeForLinearSum(
                             upperLayerErrors, layerValues[layer])
-    # upperLayerErrors = np.dot(deDz, weights[layer - 1].T)
-    upperLayerErrors = np.tensordot(deDz, weights[layer - 1].T, [[deDz.ndim - 1], [weights[layer - 1].T.ndim -2]])
+    upperLayerErrors = np.dot(deDz, weights[layer - 1].T)
 
     dw = np.einsum('ij,ik->jk', layerValues[layer - 1], deDz)
 

@@ -34,9 +34,9 @@ class RBM(object):
     if not self.initialized:
       self.weights = self.initializeWeights(self.nrVisible, self.nrHidden)
       self.biases = self.intializeBiases(data, self.nrHidden)
-      self.data = data
-    else:
-      self.data = np.concatenate(self.data, data)
+      # self.data = data
+    # else:
+      # self.data = np.concatenate(self.data, data)
 
     self.biases, self.weights = self.trainingFunction(data,
                                                       self.biases,
