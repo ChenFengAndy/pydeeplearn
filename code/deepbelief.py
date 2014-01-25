@@ -8,6 +8,7 @@ import restrictedBoltzmannMachine as rbm
 # on the weights
 # TODO: monitor the changes in error and change the learning rate according
 # to that
+# TODO: rmsprop
 # TODO: wake sleep for improving generation
 # TODO: nesterov method for momentum
 
@@ -117,6 +118,12 @@ class DBN(object):
         momentum = 0.95
 
       for batch in xrange(nrMiniBatches):
+        # Nesterov momentum: first do the step in the direction of the old gradient
+        for index in xrange(stages):
+          self.weights[index] += momentum * oldDWeights[index]
+          self.biases[index] += momentum * oldDBias[index]
+
+
         start = batch * miniBatchSize
         end = (batch + 1) * miniBatchSize
         batchData = data[start: end]
@@ -135,11 +142,10 @@ class DBN(object):
         # Update the weights and biases using gradient descent
         # Also update the old weights
         for index in xrange(stages):
-          oldDWeights[index] = momentum * oldDWeights[index] + batchLearningRate * dWeights[index]
-          oldDBias[index] = momentum * oldDBias[index] + batchLearningRate * dBias[index]
-          self.weights[index] -= oldDWeights[index]
-          self.biases[index] -= oldDBias[index]
-
+          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * dWeights[index]
+          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * dBias[index]
+          self.weights[index] -=  batchLearningRate * dWeights[index]
+          self.biases[index] -= batchLearningRate * dBias[index]
 
   def classify(self, dataInstaces):
     lastLayerValues = forwardPass(self.classifcationWeights,
