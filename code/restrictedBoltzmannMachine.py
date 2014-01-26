@@ -278,12 +278,8 @@ def PCD(data, biases, weights, activationFun, dropout,
   # make this an argument or something
   nrFantasyParticles = 15
   fantVisible = np.random.randint(2, size=(nrFantasyParticles, weights.shape[0]))
-  print "fantVisible.shape"
-  print fantVisible.shape
 
   fantHidden = np.random.randint(2, size=(nrFantasyParticles, weights.shape[1]))
-  print "fantHidden.shape"
-  print fantHidden.shape
   fantasyParticles = (fantVisible, fantHidden)
 
   steps = 10
@@ -367,23 +363,13 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
                                      binary=False)
 
   # hiddenReconstruction = hiddenReconstruction * on
-  print "visibleReconstruction.shape" + "old"
-  print visibleReconstruction.shape
-  print "hiddenReconstruction.shape" + "old"
-  print hiddenReconstruction.shape
   recShapeVis = (batchData.shape[0], 1)
   recShapeHid = (batchData.shape[0], 1)
 
-  print "recShapeVis"
-  print recShapeVis
-  print "recShapeHid"
-  print recShapeHid
   fantasyParticles = (visibleReconstruction, hiddenReconstruction)
   visibleReconstruction = np.tile(np.mean(visibleReconstruction, axis=0), recShapeVis)
   hiddenReconstruction = np.tile(np.mean(hiddenReconstruction, axis=0), recShapeHid)
 
-  print visibleReconstruction.shape
-  print hiddenReconstruction.shape
   # here it should be hidden * on - hiddenReconstruction
   # also below in the hidden bias
   weightsDiff = np.dot(batchData.T, hidden) -\
