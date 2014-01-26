@@ -252,7 +252,8 @@ def updateLayer(layer, otherLayerValues, biases, weights, activationFun,
 # gives better results. Not used in practice as it is too slow.
 # This is what Hinton said but it is not OK due to NIPS paper
 # This is huge code copy paste but keep it like this for now
-def PCD():
+def PCD(data, biases, weights, activationFun, dropout,
+                          visibleDropout, miniBatchSize=10):
   N = len(data)
   epochs = N / miniBatchSize
 
@@ -276,8 +277,13 @@ def PCD():
 
   # make this an argument or something
   nrFantasyParticles = 15
-  fantVisible = np.random.randint(2, size=(nrFantasyParticles, biases[0].shape))
-  fantHidden = np.random.randint(2, size=(nrFantasyParticles, biases[1].shape))
+  fantVisible = np.random.randint(2, size=(nrFantasyParticles, weights.shape[0]))
+  print "fantVisible.shape"
+  print fantVisible.shape
+
+  fantHidden = np.random.randint(2, size=(nrFantasyParticles, weights.shape[1]))
+  print "fantHidden.shape"
+  print fantHidden.shape
   fantasyParticles = (fantVisible, fantHidden)
 
   steps = 10
@@ -338,9 +344,9 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
 
   # Chose the units to be active at this point
   # different sets for each element in the mini batches
-  on = sample(dropout, hidden.shape)
-  dropoutHidden = on * hidden
-  hiddenReconstruction = dropoutHidden
+  # on = sample(dropout, hidden.shape)
+  # dropoutHidden = on * hidden
+  # hiddenReconstruction = dropoutHidden
 
   for i in xrange(steps -1):
     visibleReconstruction = updateLayer(Layer.VISIBLE, fantasyParticles[1],
@@ -350,7 +356,7 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
                                        biases, weights, activationFun,
                                        binary=True)
     # sample the hidden units active (for dropout)
-    hiddenReconstruction = hiddenReconstruction * on
+    # hiddenReconstruction = hiddenReconstruction * on
 
   # Do the last reconstruction from the probabilities in the last phase
   visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
@@ -360,25 +366,34 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
                                      biases, weights, activationFun,
                                      binary=False)
 
-  hiddenReconstruction = hiddenReconstruction * on
+  # hiddenReconstruction = hiddenReconstruction * on
+  print "visibleReconstruction.shape" + "old"
+  print visibleReconstruction.shape
+  print "hiddenReconstruction.shape" + "old"
+  print hiddenReconstruction.shape
+  recShapeVis = (batchData.shape[0], 1)
+  recShapeHid = (batchData.shape[0], 1)
 
-  recShapeVis = (batchData.shape(0), visibleReconstruction.shape(1))
-  recShapeHid = (batchData.shape(0), hiddenReconstruction.shape(1))
-
+  print "recShapeVis"
+  print recShapeVis
+  print "recShapeHid"
+  print recShapeHid
   fantasyParticles = (visibleReconstruction, hiddenReconstruction)
-  visibleReconstruction = np.mean(visibleReconstruction, axis=0).tile(recShapeVis)
-  hiddenReconstruction = np.mean(hiddenReconstruction, axis=0).tile(recShapeHid)
+  visibleReconstruction = np.tile(np.mean(visibleReconstruction, axis=0), recShapeVis)
+  hiddenReconstruction = np.tile(np.mean(hiddenReconstruction, axis=0), recShapeHid)
 
+  print visibleReconstruction.shape
+  print hiddenReconstruction.shape
   # here it should be hidden * on - hiddenReconstruction
   # also below in the hidden bias
-  weightsDiff = np.dot(batchData.T, dropoutHidden) -\
+  weightsDiff = np.dot(batchData.T, hidden) -\
                 np.dot(visibleReconstruction.T, hiddenReconstruction)
   assert weightsDiff.shape == weights.shape
 
   visibleBiasDiff = np.sum(batchData - visibleReconstruction, axis=0)
   assert visibleBiasDiff.shape == biases[0].shape
 
-  hiddenBiasDiff = np.sum(dropoutHidden - hiddenReconstruction, axis=0)
+  hiddenBiasDiff = np.sum(hidden - hiddenReconstruction, axis=0)
   assert hiddenBiasDiff.shape == biases[1].shape
 
   return weightsDiff, visibleBiasDiff, hiddenBiasDiff, fantasyParticles
