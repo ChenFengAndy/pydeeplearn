@@ -253,3 +253,56 @@ def updateLayer(layer, otherLayerValues, biases, weights, activationFun,
 # This is what Hinton said but it is not OK due to NIPS paper
 def PCD():
   pass
+
+# Same modelAndDataSampleDiff but for persistent contrastive divergence
+def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
+                            dropout, steps, fantasyParticles):
+  # Reconstruct the hidden weigs from the data
+  hidden = updateLayer(Layer.HIDDEN, batchData, biases, weights, activationFun,
+                       binary=True)
+
+  # Chose the units to be active at this point
+  # different sets for each element in the mini batches
+  on = sample(dropout, hidden.shape)
+  dropoutHidden = on * hidden
+  hiddenReconstruction = dropoutHidden
+
+  for i in xrange(steps):
+    visibleReconstruction = updateLayer(Layer.VISIBLE, fantasyParticles[1],
+                                        biases, weights, activationFun,
+                                        binary=False)
+    hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
+                                       biases, weights, activationFun,
+                                       binary=True)
+    # sample the hidden units active (for dropout)
+    hiddenReconstruction = hiddenReconstruction * on
+
+  # Do the last reconstruction from the probabilities in the last phase
+  visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
+                                      biases, weights, activationFun,
+                                      binary=False)
+  hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
+                                     biases, weights, activationFun,
+                                     binary=False)
+
+  hiddenReconstruction = hiddenReconstruction * on
+
+  recShapeVis = (batchData.shape(0), visibleReconstruction.shape(1))
+  recShapeHid = (batchData.shape(0), hiddenReconstruction.shape(1))
+
+  visibleReconstruction = np.mean(visibleReconstruction, axis=0).tile(recShapeVis)
+  hiddenReconstruction = np.mean(hiddenreconstruction, axis=0).tile(recShapeHid)
+
+  # here it should be hidden * on - hiddenReconstruction
+  # also below in the hidden bias
+  weightsDiff = np.dot(batchData.T, dropoutHidden) -\
+                np.dot(visibleReconstruction.T, hiddenReconstruction)
+  assert weightsDiff.shape == weights.shape
+
+  visibleBiasDiff = np.sum(batchData - visibleReconstruction, axis=0)
+  assert visibleBiasDiff.shape == biases[0].shape
+
+  hiddenBiasDiff = np.sum(dropoutHidden - hiddenReconstruction, axis=0)
+  assert hiddenBiasDiff.shape == biases[1].shape
+
+  return weightsDiff, visibleBiasDiff, hiddenBiasDiff
