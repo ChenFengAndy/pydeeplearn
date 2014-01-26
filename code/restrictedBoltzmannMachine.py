@@ -251,10 +251,85 @@ def updateLayer(layer, otherLayerValues, biases, weights, activationFun,
 # Another training algorithm. Slower than Contrastive divergence, but
 # gives better results. Not used in practice as it is too slow.
 # This is what Hinton said but it is not OK due to NIPS paper
+# This is huge code copy paste but keep it like this for now
 def PCD():
-  pass
+  N = len(data)
+  epochs = N / miniBatchSize
+
+  # sample the probabily distributions allow you to chose from the
+  # visible units for dropout
+  on = sample(visibleDropout, data.shape)
+  dropoutData = data * on
+
+  epsilon = 0.01
+  decayFactor = 0.0002
+  weightDecay = True
+  reconstructionStep = 50
+
+  oldDeltaWeights = np.zeros(weights.shape)
+  oldDeltaVisible = np.zeros(biases[0].shape)
+  oldDeltaHidden = np.zeros(biases[1].shape)
+
+  batchLearningRate = epsilon / miniBatchSize
+  print "batchLearningRate"
+  print batchLearningRate
+
+  # make this an argument or something
+  nrFantasyParticles = 15
+  fantVisible = np.random.randint(2, size=(nrFantasyParticles, biases[0].shape))
+  fantHidden = np.random.randint(2, size=(nrFantasyParticles, biases[1].shape))
+  fantasyParticles = (fantVisible, fantHidden)
+
+  steps = 10
+
+  for epoch in xrange(epochs):
+    batchData = dropoutData[epoch * miniBatchSize: (epoch + 1) * miniBatchSize, :]
+    if epoch < epochs / 100:
+      momentum = 0.5
+    else:
+      momentum = 0.95
+
+    if EXPENSIVE_CHECKS_ON:
+      if epoch % reconstructionStep == 0:
+        print "reconstructionError"
+        print reconstructionError(biases, weights, data, activationFun)
+
+    weightsDiff, visibleBiasDiff, hiddenBiasDiff, fantasyParticles =\
+            modelAndDataSampleDiffsPCD(batchData, biases, weights,
+            activationFun, dropout, steps, fantasyParticles)
+
+    # Update the weights
+    # data - model
+    # Positive phase - negative
+    # Weight decay factor
+    deltaWeights = (batchLearningRate * weightsDiff
+                    - epsilon * weightDecay * decayFactor * weights)
+
+    deltaVisible = batchLearningRate * visibleBiasDiff
+    deltaHidden  = batchLearningRate * hiddenBiasDiff
+
+    deltaWeights += momentum * oldDeltaWeights
+    deltaVisible += momentum * oldDeltaVisible
+    deltaHidden += momentum * oldDeltaHidden
+
+    oldDeltaWeights = deltaWeights
+    oldDeltaVisible = deltaVisible
+    oldDeltaHidden = deltaHidden
+
+    # Update the weighths
+    weights += deltaWeights
+    # Update the visible biases
+    biases[0] += deltaVisible
+
+    # Update the hidden biases
+    biases[1] += deltaHidden
+
+  print reconstructionError(biases, weights, data, activationFun)
+  return biases, weights
+
 
 # Same modelAndDataSampleDiff but for persistent contrastive divergence
+# First run it without dropout
 def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
                             dropout, steps, fantasyParticles):
   # Reconstruct the hidden weigs from the data
@@ -267,7 +342,7 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   dropoutHidden = on * hidden
   hiddenReconstruction = dropoutHidden
 
-  for i in xrange(steps):
+  for i in xrange(steps -1):
     visibleReconstruction = updateLayer(Layer.VISIBLE, fantasyParticles[1],
                                         biases, weights, activationFun,
                                         binary=False)
@@ -290,8 +365,9 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   recShapeVis = (batchData.shape(0), visibleReconstruction.shape(1))
   recShapeHid = (batchData.shape(0), hiddenReconstruction.shape(1))
 
+  fantasyParticles = (visibleReconstruction, hiddenReconstruction)
   visibleReconstruction = np.mean(visibleReconstruction, axis=0).tile(recShapeVis)
-  hiddenReconstruction = np.mean(hiddenreconstruction, axis=0).tile(recShapeHid)
+  hiddenReconstruction = np.mean(hiddenReconstruction, axis=0).tile(recShapeHid)
 
   # here it should be hidden * on - hiddenReconstruction
   # also below in the hidden bias
@@ -305,4 +381,4 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   hiddenBiasDiff = np.sum(dropoutHidden - hiddenReconstruction, axis=0)
   assert hiddenBiasDiff.shape == biases[1].shape
 
-  return weightsDiff, visibleBiasDiff, hiddenBiasDiff
+  return weightsDiff, visibleBiasDiff, hiddenBiasDiff, fantasyParticles
