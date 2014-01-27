@@ -67,7 +67,7 @@ class DBN(object):
     currentData = data
     for i in xrange(nrRbms):
       net = rbm.RBM(self.layerSizes[i], self.layerSizes[i+1],
-                    rbm.PCD,
+                    rbm.contrastiveDivergence,
                     self.rbmDropout,
                     self.rbmVisibleDropout,
                     self.activationFunctions[i].value)
@@ -252,7 +252,7 @@ composed of a base vector, with 1 for the correct class and 0 for all the rest.
 def derivativesCrossEntropyError(expected, actual):
   return - expected * (1.0 / actual)
 
-# Only works with binary units
-def wakeSleep():
+# Only works with binary units: then maybe not implement it?
+def ContrastiveWakeSleep():
   pass
   # need to alternate between wake and sleep pahses

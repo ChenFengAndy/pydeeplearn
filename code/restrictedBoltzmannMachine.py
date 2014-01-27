@@ -259,8 +259,9 @@ def PCD(data, biases, weights, activationFun, dropout,
 
   # sample the probabily distributions allow you to chose from the
   # visible units for dropout
-  on = sample(visibleDropout, data.shape)
-  dropoutData = data * on
+  # on = sample(visibleDropout, data.shape)
+  # dropoutData = data * on
+  dropoutData = data
 
   epsilon = 0.01
   decayFactor = 0.0002
@@ -367,9 +368,11 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   recShapeHid = (batchData.shape[0], 1)
 
   fantasyParticles = (visibleReconstruction, hiddenReconstruction)
+
   visibleReconstruction = np.tile(np.mean(visibleReconstruction, axis=0), recShapeVis)
   hiddenReconstruction = np.tile(np.mean(hiddenReconstruction, axis=0), recShapeHid)
 
+  print visibleReconstruction
   # here it should be hidden * on - hiddenReconstruction
   # also below in the hidden bias
   weightsDiff = np.dot(batchData.T, hidden) -\
