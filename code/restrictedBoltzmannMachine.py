@@ -357,10 +357,10 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   # Do the last reconstruction from the probabilities in the last phase
   visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
                                       biases, weights, activationFun,
-                                      binary=False)
+                                      binary=True)
   hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
                                      biases, weights, activationFun,
-                                     binary=False)
+                                     binary=True)
 
   # hiddenReconstruction = hiddenReconstruction * on
   recShapeVis = (batchData.shape[0], 1)

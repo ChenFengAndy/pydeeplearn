@@ -67,7 +67,7 @@ class DBN(object):
     currentData = data
     for i in xrange(nrRbms):
       net = rbm.RBM(self.layerSizes[i], self.layerSizes[i+1],
-                    rbm.contrastiveDivergence,
+                    rbm.PCD,
                     self.rbmDropout,
                     self.rbmVisibleDropout,
                     self.activationFunctions[i].value)
