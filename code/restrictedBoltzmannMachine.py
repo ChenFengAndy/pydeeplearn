@@ -11,6 +11,8 @@ from common import *
 EXPENSIVE_CHECKS_ON = False
 
 # TODO: different learning rates for weights and biases
+# TODO: nesterov method for momentum
+# TODO: rmsprop
 """
  Represents a RBM
 """
@@ -358,7 +360,7 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   # Do the last reconstruction from the probabilities in the last phase
   visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
                                       biases, weights, activationFun,
-                                      binary=True)
+                                      binary=False)
   hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
                                      biases, weights, activationFun,
                                      binary=True)
@@ -372,7 +374,6 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   visibleReconstruction = np.tile(np.mean(visibleReconstruction, axis=0), recShapeVis)
   hiddenReconstruction = np.tile(np.mean(hiddenReconstruction, axis=0), recShapeHid)
 
-  print visibleReconstruction
   # here it should be hidden * on - hiddenReconstruction
   # also below in the hidden bias
   weightsDiff = np.dot(batchData.T, hidden) -\
