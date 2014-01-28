@@ -279,12 +279,12 @@ def PCD(data, biases, weights, activationFun, dropout,
   print batchLearningRate
 
   # make this an argument or something
-  nrFantasyParticles = 15
+  nrFantasyParticles = miniBatchSize
+
   fantVisible = np.random.randint(2, size=(nrFantasyParticles, weights.shape[0]))
-
   fantHidden = np.random.randint(2, size=(nrFantasyParticles, weights.shape[1]))
-  fantasyParticles = (fantVisible, fantHidden)
 
+  fantasyParticles = (fantVisible, fantHidden)
   steps = 10
 
   for epoch in xrange(epochs):
@@ -299,6 +299,8 @@ def PCD(data, biases, weights, activationFun, dropout,
         print "reconstructionError"
         print reconstructionError(biases, weights, data, activationFun)
 
+    print fantasyParticles[0]
+    print fantasyParticles[1]
     weightsDiff, visibleBiasDiff, hiddenBiasDiff, fantasyParticles =\
             modelAndDataSampleDiffsPCD(batchData, biases, weights,
             activationFun, dropout, steps, fantasyParticles)
@@ -347,32 +349,18 @@ def modelAndDataSampleDiffsPCD(batchData, biases, weights, activationFun,
   # dropoutHidden = on * hidden
   # hiddenReconstruction = dropoutHidden
 
-  for i in xrange(steps -1):
+  for i in xrange(steps):
     visibleReconstruction = updateLayer(Layer.VISIBLE, fantasyParticles[1],
                                         biases, weights, activationFun,
                                         binary=False)
     hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
                                        biases, weights, activationFun,
                                        binary=True)
+
     # sample the hidden units active (for dropout)
     # hiddenReconstruction = hiddenReconstruction * on
 
-  # Do the last reconstruction from the probabilities in the last phase
-  visibleReconstruction = updateLayer(Layer.VISIBLE, hiddenReconstruction,
-                                      biases, weights, activationFun,
-                                      binary=False)
-  hiddenReconstruction = updateLayer(Layer.HIDDEN, visibleReconstruction,
-                                     biases, weights, activationFun,
-                                     binary=True)
-
-  # hiddenReconstruction = hiddenReconstruction * on
-  recShapeVis = (batchData.shape[0], 1)
-  recShapeHid = (batchData.shape[0], 1)
-
   fantasyParticles = (visibleReconstruction, hiddenReconstruction)
-
-  visibleReconstruction = np.tile(np.mean(visibleReconstruction, axis=0), recShapeVis)
-  hiddenReconstruction = np.tile(np.mean(hiddenReconstruction, axis=0), recShapeHid)
 
   # here it should be hidden * on - hiddenReconstruction
   # also below in the hidden bias
