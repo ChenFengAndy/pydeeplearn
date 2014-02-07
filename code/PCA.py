@@ -18,6 +18,10 @@ PICTURE_PATH = "/pics/cambrdige_pics/"
 # The current directory where the script is ran
 currentDir = os.path.dirname(os.path.abspath(__file__))
 
+
+#: TODO: BECAUSE YOU SUBTRACT THE MEAN OF THE DATA YOU ALSO HAVE TO RSUBTRACT THE MEAN OF THE DATA
+# FROM THE TEST DATA
+# RETURN HERE THE MEAN OF THE DATA FIRST
 """
   Converts the data to zero mean data.
 """

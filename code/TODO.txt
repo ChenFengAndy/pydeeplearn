@@ -35,3 +35,10 @@ runnign experiments:
   edge05 with 20% fixed but only with 10.000 to see that stuff is working
 
   edge02 with rbm dropout
+
+
+WHAT HAPPENS IF YOU INCREASE THE DATA SIZE FOR THE SECOND RBMS BY USING DIFFERENT RECONSTRUCTIONS OF THE DATA? or like dropout, droping out from different sides of the data.
+
+
+TODO: get a generative sample from the deep belief nets for MNIST, like shown here
+https://class.coursera.org/neuralnets-2012-001/lecture/151 minute 05:431
