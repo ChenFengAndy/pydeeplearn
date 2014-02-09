@@ -46,6 +46,9 @@ class DBN(object):
     self.visibleDropout = visibleDropout
     self.rbmVisibleDropout = rbmVisibleDropout
 
+    # Impose an L2 norm restriction on the weights
+    self.normRestriction  = 1
+
     assert len(layerSizes) == nrLayers
     assert len(activationFunctions) == nrLayers - 1
 
@@ -139,6 +142,12 @@ class DBN(object):
           oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * dBias[index]
           self.weights[index] += oldDWeights[index]
           self.biases[index] += oldDBias[index]
+          # Ensure that the weights are in a certain range
+          # This is to ensure that dropout works best
+          norms = np.sum(np.abs(self.weights[index])**2, axis=-1) ** (1./2)
+          # Resize only the weights for which the norm is bigger then
+          applyDiv = norms > self.normRestriction
+          self.weights += applyDiv * self.weights * ((self.normRestriction / norms) - 1)
 
 
   def classify(self, dataInstaces):
