@@ -142,8 +142,8 @@ class DBN(object):
         # Update the weights and biases using gradient descent
         # Also update the old weights
         for index in xrange(stages):
-          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * dWeights[index]
-          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * dBias[index]
+          oldDWeights[index] = momentum * oldDWeights[index] + batchLearningRate * dWeights[index]
+          oldDBias[index] = momentum * oldDBias[index] + batchLearningRate * dBias[index]
           self.weights[index] -=  batchLearningRate * dWeights[index]
           self.biases[index] -= batchLearningRate * dBias[index]
 
