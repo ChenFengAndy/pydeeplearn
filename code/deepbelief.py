@@ -109,6 +109,10 @@ class DBN(object):
     stages = len(self.weights)
 
     # TODO: maybe find a better way than this to find a stopping criteria
+    # That would be early stopping! DO THAT
+    meanSquaresW = zerosFromShape(self.weights)
+    meanSquaresB = zerosFromShape(self.biases)
+
     for epoch in xrange(epochs):
 
       if epoch < epochs / 10:
@@ -135,8 +139,14 @@ class DBN(object):
         # Update the weights and biases using gradient descent
         # Also update the old weights
         for index in xrange(stages):
-          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * dWeights[index]
-          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * dBias[index]
+          # TODO: this might not work due to initial small learning rates
+          # in initialization
+          # I might get better results if I leave this running for a bit
+          # like with momentum
+          meanSquaresW[index] = 0.9 * meanSquaresW[index] + 0.1 * dWeights[index]
+          meanSquaresB[index] = 0.9 * meanSquaresB[index] + 0.1 * dBias[index]
+          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * meanSquaresW[index]
+          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * meanSquaresB[index]
           self.weights[index] += oldDWeights[index]
           self.biases[index] += oldDBias[index]
 
