@@ -143,10 +143,17 @@ class DBN(object):
           # in initialization
           # I might get better results if I leave this running for a bit
           # like with momentum
-          meanSquaresW[index] = 0.9 * meanSquaresW[index] + 0.1 * dWeights[index]
-          meanSquaresB[index] = 0.9 * meanSquaresB[index] + 0.1 * dBias[index]
-          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * (dWeights[index] / meanSquaresW[index])
-          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * (dBias[index] / meanSquaresB[index])
+          # meanSquaresW[index] = 0.9 * meanSquaresW[index] + 0.1 * dWeights[index]
+          # meanSquaresB[index] = 0.9 * meanSquaresB[index] + 0.1 * dBias[index]
+          print dWeights[index]
+          # print meanSquaresB[index]
+          # print meanSquaresW[index]
+          # oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * (dWeights[index] / meanSquaresW[index])
+          # oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * (dBias[index] / meanSquaresB[index])
+
+          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * (dWeights[index])
+          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * (dBias[index])
+
           self.weights[index] += oldDWeights[index]
           self.biases[index] += oldDBias[index]
 
@@ -176,9 +183,7 @@ def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
   for layer in xrange(nrLayers - 1, 0, -1):
     deDz = activationFunctions[layer - 1].derivativeForLinearSum(
                             upperLayerErrors, layerValues[layer])
-    # upperLayerErrors = np.dot(deDz, weights[layer - 1].T)
-    upperLayerErrors = np.tensordot(deDz, weights[layer - 1].T, [[deDz.ndim - 1], [weights[layer - 1].T.ndim -2]])
-
+    upperLayerErrors = np.dot(deDz, weights[layer - 1].T)
     dw = np.einsum('ij,ik->jk', layerValues[layer - 1], deDz)
 
     dbias = deDz.sum(axis=0)
