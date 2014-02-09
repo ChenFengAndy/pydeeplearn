@@ -178,6 +178,7 @@ def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
                             upperLayerErrors.get_value(), layerValues[layer])
     mydot(deDz, weights[layer - 1].T)
 
+    # make this a theano.scan or outer product
     dw = np.einsum('ij,ik->jk', layerValues[layer - 1], deDz)
 
     dbias = deDz.sum(axis=0)
@@ -228,7 +229,7 @@ def forwardPassDropout(weights, biases, activationFunctions,
     b = biases[stage]
     activation = activationFunctions[stage]
 
-    linearSum = np.dot(thinnedValues, w) + np.tile(b, (size, 1))
+    linearSum = np.dot(thinnedValues, w) + b
     currentLayerValues = activation.value(linearSum)
     # this is the way to do it, because of how backprop works the wij
     # will cancel out if the unit on the layer is non active
