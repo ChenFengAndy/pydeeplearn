@@ -9,7 +9,7 @@ import restrictedBoltzmannMachine as rbm
 # TODO: monitor the changes in error and change the learning rate according
 # to that
 # TODO: rmsprop
-# TODO: wake sleep for improving generation
+# TODO: wake sleep for improving generation: only works with binary units
 # TODO: nesterov method for momentum
 
 """In all the above topLayer does not mean the top most layer, but rather the
