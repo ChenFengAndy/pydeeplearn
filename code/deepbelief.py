@@ -1,10 +1,10 @@
 import numpy as np
 
 import restrictedBoltzmannMachine as rbm
-import theano
-from theano import tensor as T
 
-theanoFloat  = theano.config.floatX
+from theano import tensor as T
+from theano import function, shared
+import theano
 
 # TODO: use conjugate gradient for  backpropagation instead of steepest descent
 # see here for a theano example http://deeplearning.net/tutorial/code/logistic_cg.py
@@ -44,8 +44,7 @@ class DBN(object):
     # Note that for the first one the activatiom function does not matter
     # So for that one there is no need to pass in an activation function
     self.activationFunctions = activationFunctions
-
-    # Do I need to initialize this to scalars
+    self.initialized = False
     self.dropout = dropout
     self.rbmDropout = rbmDropout
     self.visibleDropout = visibleDropout
@@ -53,12 +52,6 @@ class DBN(object):
 
     assert len(layerSizes) == nrLayers
     assert len(activationFunctions) == nrLayers - 1
-    # you need a list of shared weights
-    # the params are the params of the rbms + the softmax layer
-
-    # This depends if you have generative or not
-    nrRbms = self.nrLayers - 2
-
 
     """
     TODO:
@@ -68,7 +61,6 @@ class DBN(object):
       then do backprop for discrimintaiton
     """
 
-  # the data and labels need to be theano stuff
   def train(self, data, labels=None):
     # This depends if you have generative or not
     nrRbms = self.nrLayers - 2
@@ -76,7 +68,6 @@ class DBN(object):
     self.weights = []
     self.biases = []
     currentData = data
-
     for i in xrange(nrRbms):
       net = rbm.RBM(self.layerSizes[i], self.layerSizes[i+1],
                     rbm.contrastiveDivergence,
@@ -84,54 +75,21 @@ class DBN(object):
                     self.rbmVisibleDropout,
                     self.activationFunctions[i].value)
       net.train(currentData)
-      # you need to make the weights and biases shared and
-      # add them to params
-      w = theano.shared(value=np.asarray(net.weights / self.dropout,
-                                         dtype=theanoFloat),
-                        name='W')
-      self.weights += [w]
-      # this takes the biases from the hidden units
-      # the biases for the visible units are discarded.
-
-      # Store the biases on GPU and do not return it on CPU (borrow=True)
-      b = theano.shared(value=np.asarray(net.biases[1] / self.dropout,
-                                         dtype=theanoFloat),
-                        name='b')
-      self.biases += [b]
+      self.weights += [net.weights / self.dropout]
+      self.biases += [net.biases[1] / self.dropout]
 
       currentData = net.hiddenRepresentation(currentData)
 
     # This depends if you have generative or not
     # Initialize the last layer of weights to zero if you have
     # a discriminative net
-    lastLayerWeights = np.zeros(shape=(self.layerSizes[-2], self.layerSizes[-1]),
-                                dtype=theanoFloat)
-    w = theano.shared(value=lastLayerWeights,
-                      name='W')
-                      # borrow=True)
-
-    lastLayerBiases = np.zeros(shape=(self.layerSizes[-1]),
-                                dtype=theanoFloat)
-    b = theano.shared(value=lastLayerBiases,
-                      name='b')
-                      # borrow=True)
-
-    self.weights += [w]
-    self.biases += [b]
+    self.weights += [np.zeros((self.layerSizes[-2], self.layerSizes[-1]))]
+    self.biases += [np.zeros(self.layerSizes[-1])]
 
     assert len(self.weights) == self.nrLayers - 1
     assert len(self.biases) == self.nrLayers - 1
-
-    # Set the parameters of the net
-    # According to them we will do backprop
-    self.params = self.weights + self.biases
-
     # Does backprop or wake sleep?
-    # Check if wake sleep works for real values
     self.fineTune(data, labels)
-    # Change the weights according to dropout rules
-    # make this shared maybe as well? so far they are definitely not
-    # a problem so we will see later
     self.classifcationWeights = map(lambda x: x * self.dropout, self.weights)
     self.classifcationBiases = map(lambda x: x * self.dropout, self.biases)
 
@@ -149,13 +107,12 @@ class DBN(object):
 
     nrMiniBatches = len(data) / miniBatchSize
 
-    # oldDWeights = zerosFromShape(self.weights)
-    # oldDBias = zerosFromShape(self.biases)
+    oldDWeights = zerosFromShape(self.weights)
+    oldDBias = zerosFromShape(self.biases)
 
     stages = len(self.weights)
 
     # TODO: maybe find a better way than this to find a stopping criteria
-    # maybe do this entire loop on the GPU?
     for epoch in xrange(epochs):
 
       if epoch < epochs / 10:
@@ -172,28 +129,20 @@ class DBN(object):
         layerValues = forwardPassDropout(self.weights, self.biases,
                                         self.activationFunctions, batchData,
                                         self.dropout, self.visibleDropout)
-
-        # finalLayerErrors = derivativesCrossEntropyError(labels[start:end],
-        #                                       layerValues[-1])
+        finalLayerErrors = derivativesCrossEntropyError(labels[start:end],
+                                              layerValues[-1])
 
         # Compute all derivatives
-        # In the new version you just need to do an update of the shared variables
-        # but a clear way of seeing what are the parameters for everything would be good.
-        # the weights can be kept as a list
-        error = T.nnet.categorical_crossentropy(layerValues[-1], labels[start:end])
-        gparams = T.grad(self.params, error)
         dWeights, dBias = backprop(self.weights, layerValues,
                             finalLayerErrors, self.activationFunctions)
 
-        # apply the updates somehow
-
         # Update the weights and biases using gradient descent
         # Also update the old weights
-        # for index in xrange(stages):
-        #   oldDWeights[index] = momentum * oldDWeights[index] + batchLearningRate * dWeights[index]
-        #   oldDBias[index] = momentum * oldDBias[index] + batchLearningRate * dBias[index]
-        #   self.weights[index] -= oldDWeights[index]
-        #   self.biases[index] -= oldDBias[index]
+        for index in xrange(stages):
+          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * dWeights[index]
+          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * dBias[index]
+          self.weights[index] += oldDWeights[index]
+          self.biases[index] += oldDBias[index]
 
 
   def classify(self, dataInstaces):
@@ -216,26 +165,29 @@ def backprop(weights, layerValues, finalLayerErrors, activationFunctions):
   nrLayers = len(weights) + 1
   deDw = []
   deDbias = []
-  upperLayerErrors = finalLayerErrors
+  # upperLayerErrors = finalLayerErrors
+  x = T.matrix('x', dtype=theano.config.floatX)
+  y = T.matrix('y', dtype=theano.config.floatX)
 
-  # change this to theano.scan in case it is needed
+  upperLayerErrors = shared(value=np.asarray(finalLayerErrors, dtype = theano.config.floatX), name='sc')
 
-  # for layer in xrange(nrLayers - 1, 0, -1):
-  #   deDz = activationFunctions[layer - 1].derivativeForLinearSum(
-  #                           upperLayerErrors, layerValues[layer])
-  #   upperLayerErrors = np.dot(deDz, weights[layer - 1].T)
+  mydot = function([x,y], updates=((upperLayerErrors, T.dot(x,y)), ))
 
-  #   dw = np.einsum('ij,ik->jk', layerValues[layer - 1], deDz)
+  for layer in xrange(nrLayers - 1, 0, -1):
+    deDz = activationFunctions[layer - 1].derivativeForLinearSum(
+                            upperLayerErrors.get_value(), layerValues[layer])
+    mydot(deDz, weights[layer - 1].T)
 
-  #   dbias = deDz.sum(axis=0)
+    dw = np.einsum('ij,ik->jk', layerValues[layer - 1], deDz)
 
-  #   # Iterating in decreasing order of layers, so we are required to
-  #   # append the weight derivatives at the front as we go along
-  #   deDw.insert(0, dw)
-  #   deDbias.insert(0, dbias)
+    dbias = deDz.sum(axis=0)
 
-  # return deDw, deDbias
-  return None
+    # Iterating in decreasing order of layers, so we are required to
+    # append the weight derivatives at the front as we go along
+    deDw.insert(0, dw)
+    deDbias.insert(0, dbias)
+
+  return deDw, deDbias
 
 """ Does not do dropout. Used for classification. """
 def forwardPass(weights, biases, activationFunctions, dataInstaces):
@@ -276,10 +228,7 @@ def forwardPassDropout(weights, biases, activationFunctions,
     b = biases[stage]
     activation = activationFunctions[stage]
 
-    # for now use tensor.tile but it does not have a gradient so does not work
-    # well with symblic differentiation
-    # tile does not work like this?
-    linearSum = T.dot(thinnedValues, w) + np.tile(b, [size, 1])
+    linearSum = np.dot(thinnedValues, w) + np.tile(b, (size, 1))
     currentLayerValues = activation.value(linearSum)
     # this is the way to do it, because of how backprop works the wij
     # will cancel out if the unit on the layer is non active
@@ -287,6 +236,7 @@ def forwardPassDropout(weights, biases, activationFunctions,
     # so if we set a unit as non active here (and we have to because
     # of this exact same reason and of ow we backpropagate)
     if stage != len(weights) - 1:
+
       on = sample(dropout, currentLayerValues.shape)
       thinnedValues = on * currentLayerValues
       layerValues += [thinnedValues]
