@@ -145,8 +145,8 @@ class DBN(object):
           # like with momentum
           meanSquaresW[index] = 0.9 * meanSquaresW[index] + 0.1 * dWeights[index]
           meanSquaresB[index] = 0.9 * meanSquaresB[index] + 0.1 * dBias[index]
-          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * meanSquaresW[index]
-          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * meanSquaresB[index]
+          oldDWeights[index] = momentum * oldDWeights[index] - batchLearningRate * (dWeights[index] / meanSquaresW[index])
+          oldDBias[index] = momentum * oldDBias[index] - batchLearningRate * (dBias[index] / meanSquaresB[index])
           self.weights[index] += oldDWeights[index]
           self.biases[index] += oldDBias[index]
 
