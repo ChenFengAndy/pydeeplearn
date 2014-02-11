@@ -144,11 +144,11 @@ class DBN(object):
           self.biases[index] += oldDBias[index]
           # Ensure that the weights are in a certain range
           # This is to ensure that dropout works best
-          norms = np.norm(self.weights[index], axis=0)
+          norms = np.linalg.norm(self.weights[index], axis=0)
           # Resize only the weights for which the norm is bigger then
           applyDiv = norms > self.normRestriction
 
-          self.weights[index][:, applyDiv] *= self.normRestriction / norms[applyDiv][:, np.newaxis]
+          self.weights[index][:, applyDiv] *= self.normRestriction / norms[applyDiv][np.newaxis, :]
 
 
   def classify(self, dataInstaces):
