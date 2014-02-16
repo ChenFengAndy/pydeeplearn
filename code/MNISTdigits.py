@@ -40,11 +40,11 @@ def visualizeWeights(weights, imgShape, tileShape):
   return utils.tile_raster_images(weights, imgShape,
                                   tileShape, tile_spacing=(1, 1))
 
-def rbmMain():
+def rbmMain(reconstructRandom=True):
   trainVectors, trainLabels =\
-      readmnist.read(0, args.trainSize, digits=[2], bTrain=True, path="MNIST")
+      readmnist.read(0, args.trainSize, digits=None, bTrain=True, path="MNIST")
   testingVectors, testLabels =\
-      readmnist.read(0, args.testSize, digits=[2],bTrain=False, path="MNIST")
+      readmnist.read(0, args.testSize, digits=None, bTrain=False, path="MNIST")
 
   trainingScaledVectors = trainVectors / 255.0
   testingScaledVectors = testingVectors / 255.0
@@ -71,14 +71,22 @@ def rbmMain():
   test = testingScaledVectors[0,:]
 
   # get a random image and see it looks like
-  # test = np.random.random_sample(test.shape)
+  if reconstructRandom:
+    test = np.random.random_sample(test.shape)
 
 
+  # Show the initial image first
+  recon = net.reconstruct(test.reshape(1, test.shape[0]))
+  plt.imshow(vectorToImage(test, (28,28)), cmap=plt.cm.gray)
+  plt.show()
+
+  # Show the reconstruction
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   plt.imshow(vectorToImage(recon, (28,28)), cmap=plt.cm.gray)
   plt.show()
 
   # Show the weights and their form in a tile fashion
+  # Plot the weights
   plt.imshow(t, cmap=plt.cm.gray)
   plt.show()
   print "done"
