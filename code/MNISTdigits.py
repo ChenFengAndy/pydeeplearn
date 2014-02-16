@@ -119,6 +119,7 @@ def pcaOnMnist(training, dimension=700):
   plt.show()
   print "done"
 
+
 def deepbeliefMain():
   training = args.trainSize
   testing = args.testSize
