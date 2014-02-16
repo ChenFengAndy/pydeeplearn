@@ -25,6 +25,7 @@ def convertDataToZeroMean(data):
   means = scipy.mean(data, axis=0)
 
   # Step2: Substract the mean of it's column from every element
+  # TODO: I do not think you need all
   rows, cols = data.shape
   zeroMean = numpy.zeros((rows, cols))
   for i in xrange(rows):

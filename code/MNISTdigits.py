@@ -42,9 +42,9 @@ def visualizeWeights(weights, imgShape, tileShape):
 
 def rbmMain():
   trainVectors, trainLabels =\
-      readmnist.read(0, args.trainSize, digits=None, bTrain=True, path="MNIST")
+      readmnist.read(0, args.trainSize, digits=[2], bTrain=True, path="MNIST")
   testingVectors, testLabels =\
-      readmnist.read(0, args.testSize, digits=None,bTrain=False, path="MNIST")
+      readmnist.read(0, args.testSize, digits=[2],bTrain=False, path="MNIST")
 
   trainingScaledVectors = trainVectors / 255.0
   testingScaledVectors = testingVectors / 255.0
@@ -67,8 +67,12 @@ def rbmMain():
     net = pickle.load(f)
     f.close()
 
-  # Reconstruct a training image and see that it actually looks like a digit
+  # Reconstruct an image and see that it actually looks like a digit
   test = testingScaledVectors[0,:]
+
+  # get a random image and see it looks like
+  # test = np.random.random_sample(test.shape)
+
 
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   plt.imshow(vectorToImage(recon, (28,28)), cmap=plt.cm.gray)
