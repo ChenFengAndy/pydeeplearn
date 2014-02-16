@@ -122,7 +122,6 @@ def pca(train, dimension):
   sortedEigValsBigVecs = sorted(eigValsBigVecs, key=lambda x : x[0], reverse=True)
 
   index = 0
-  result = []
   if dimension == None:
     # Get the eigen values
     # Note that these are not the eigen values of the covariance matrix
@@ -134,6 +133,7 @@ def pca(train, dimension):
     print "Using PCA dimension " + str(dimension)
 
 
+  result = np.empty(rows, dimension)
   for eigVal, vector in sortedEigValsBigVecs:
     if index >= dimension:
       break
@@ -141,7 +141,7 @@ def pca(train, dimension):
     if eigVal <=0:
       print "Warning: Non-positive eigen value"
 
-    result += [vector]
+    result[:, index] = vector
     index = index + 1
 
   return result

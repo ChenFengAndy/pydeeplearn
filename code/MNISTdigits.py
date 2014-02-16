@@ -106,8 +106,8 @@ def shuffle(data, labels):
 
 
 def pcaOnMnist(training, dimension=700):
-  res = PCA.pca(training, dimension)
-  low, same = PCA.reduce(res, training)
+  principalComponents = PCA.pca(training, dimension)
+  low, same = PCA.reduce(principalComponents, training)
 
   image2DInitial = vectorToImage(training[0], (28,28))
   print same[0].shape
