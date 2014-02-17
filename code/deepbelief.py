@@ -47,7 +47,7 @@ class DBN(object):
     self.rbmVisibleDropout = rbmVisibleDropout
 
     # Impose an L2 norm restriction on the weights
-    self.normRestriction  = 1.0
+    self.normRestriction  = 5
 
     assert len(layerSizes) == nrLayers
     assert len(activationFunctions) == nrLayers - 1
@@ -144,15 +144,18 @@ class DBN(object):
           self.biases[index] += oldDBias[index]
           # Ensure that the weights are in a certain range
           # This is to ensure that dropout works best
-          norms = np.linalg.norm(self.weights[index], axis=0)
+          norms = np.linalg.norm(self.weights[index], ord=2,axis=0)
+
+          assert norms.shape[0] == self.weights[index].shape[1]
           # Resize only the weights for which the norm is bigger then
           applyDiv = norms > self.normRestriction
 
-          self.weights[index][:, applyDiv] *= self.normRestriction / norms[applyDiv][np.newaxis, :]
-          assert np/sum(np.linalg.norm(self.weights[index], axis=0) > self.normRestriction) == 0
+          self.weights[index][:, applyDiv] /=  norms[applyDiv][np.newaxis, :]
+          self.weights[index][:, applyDiv] *=  self.normRestriction
+          assert np.allclose(np.linalg.norm(self.weights[index][:, applyDiv], axis=0), self.normRestriction * np.ones(applyDiv.sum()))
 
-          # get the norm of the changed ones and ensure it is normrestricton
-
+          print np.linalg.norm(self.weights[index], axis=0)
+          assert np.sum(np.linalg.norm(self.weights[index], axis=0) > (self.normRestriction + 0.0008)) == 0
 
   def classify(self, dataInstaces):
     lastLayerValues = forwardPass(self.classifcationWeights,
