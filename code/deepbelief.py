@@ -149,6 +149,9 @@ class DBN(object):
           applyDiv = norms > self.normRestriction
 
           self.weights[index][:, applyDiv] *= self.normRestriction / norms[applyDiv][np.newaxis, :]
+          assert np/sum(np.linalg.norm(self.weights[index], axis=0) > self.normRestriction) == 0
+
+          # get the norm of the changed ones and ensure it is normrestricton
 
 
   def classify(self, dataInstaces):
