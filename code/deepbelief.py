@@ -72,7 +72,7 @@ class DBN(object):
                     self.activationFunctions[i].value)
       net.train(currentData)
       self.weights += [net.weights / self.dropout]
-      self.biases += [net.biases[1] / self.dropout]
+      self.biases += [net.biases[1]]
 
       currentData = net.hiddenRepresentation(currentData)
 
@@ -87,7 +87,7 @@ class DBN(object):
     # Does backprop or wake sleep?
     self.fineTune(data, labels)
     self.classifcationWeights = map(lambda x: x * self.dropout, self.weights)
-    self.classifcationBiases = map(lambda x: x * self.dropout, self.biases)
+    self.classifcationBiases = self.biases
 
   """Fine tunes the weigths and biases using backpropagation.
     Arguments:
