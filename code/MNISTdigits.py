@@ -10,6 +10,7 @@ import restrictedBoltzmannMachine as rbm
 import deepbelief as db
 import utils
 import PCA
+import glob
 
 import DimensionalityReduction
 
@@ -195,9 +196,32 @@ def deepbeliefMNIST():
     folds are used
 """
 def deepBeliefKanade(big=False, folds=None):
-  # Read a file with the folds
-  # You can initially just do it with 1200 dimension
-  # Do LDA on the data
+  if big:
+    files = glob.glob('kanade_150*.pickle')
+  else:
+    files = glob.glob('kanade_f*.pickle')
+
+  if not folds:
+    folds = range(1, 6)
+
+  # Read the data from them. Sort out the files that do not have
+  # the folds that we want
+  # TODO: do this better (with regex in the file name)
+  # DO not reply on the order returned
+  files = files[folds]
+
+  data = []
+  labels = []
+  for filename in files:
+    with open(filename, "rb") as  f:
+      # Sort out the labels from the data
+      dataAndLabels = pickle.load(f)
+      foldData = dataAndLabels[0:-1 ,:]
+      foldLabels = dataAndLabels[-1,:]
+      data.append(foldData)
+      labels.append(foldLabels)
+
+  # Do LDA
 
   # Create the network
 
