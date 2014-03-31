@@ -120,7 +120,7 @@ def pcaOnMnist(training, dimension=700):
   print "done"
 
 
-def deepbeliefMain():
+def deepbeliefMNIST():
   training = args.trainSize
   testing = args.testSize
 
@@ -187,6 +187,22 @@ def deepbeliefMain():
     f.close()
 
 
+def deepBeliefKanade():
+  # Read a file with the folds
+  # You can initially just do it with 1200 dimension
+  # Do LDA on the data
+
+  # Create the network
+
+  # Test
+
+  # You can also group the emotions into positive and negative to see
+  # if you can get better results (probably yes)
+  pass
+
+
+# TODO: fix this (look at the ML coursework for it)
+# Even better, use LDA
 # think of normalizing them to 0.1 for pca as well
 def pcaMain():
   training = args.trainSize
@@ -205,7 +221,7 @@ def main():
     raise Exception("You decide on one main method to run")
 
   if args.db:
-    deepbeliefMain()
+    deepbeliefMNIST()
   if args.pca:
     pcaMain()
   if args.rbm:
