@@ -11,6 +11,8 @@ import deepbelief as db
 import utils
 import PCA
 
+import DimensionalityReduction
+
 from common import *
 
 parser = argparse.ArgumentParser(description='RBM for digit recognition')
@@ -186,8 +188,13 @@ def deepbeliefMNIST():
     pickle.dump(net, f)
     f.close()
 
-
-def deepBeliefKanade():
+"""
+  Arguments:
+    big: should the big or small images be used?
+    folds: which folds should be used (1,..5) (a list). If None is passed all
+    folds are used
+"""
+def deepBeliefKanade(big=False, folds=None):
   # Read a file with the folds
   # You can initially just do it with 1200 dimension
   # Do LDA on the data
