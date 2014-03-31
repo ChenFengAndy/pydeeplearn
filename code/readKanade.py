@@ -34,8 +34,15 @@ def main():
     readTxtWritePickle(f)
 
 # Method used for testing images
-def viewTestImage():
-  with open("kanade_fold_1.txt") as f:
+def viewTestImage(big=False):
+  if big:
+    filename = "kanade_150x200_fold_1.txt"
+    resizeShape = (150, 200)
+  else:
+    filename = "kanade_fold_1.txt"
+    resizeShape = (30, 40)
+
+  with open(filename) as f:
     # TODO: replace this with a functiOn call from the library
     lines = []
     for l in f:
@@ -50,12 +57,12 @@ def viewTestImage():
   emotion = lines[:, 0][-1]
   print "emotion"
   print emotion
-  face = np.array(face).reshape(30, 40).T
+  face = np.array(face).reshape(resizeShape).T
   plt.imshow(face, cmap=plt.cm.gray)
   plt.show()
 
 if __name__ == '__main__':
-  viewTestImage()
+  viewTestImage(big=True)
 
 
 
