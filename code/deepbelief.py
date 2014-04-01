@@ -62,10 +62,12 @@ class MiniBatchTrainer(object):
       w = self.weights[stage]
       b = self.biases[stage]
       linearSum = T.dot(currentLayerValues, w) + b
-      # if stage != len(self.weights) -1:
-      currentLayerValues = T.nnet.sigmoid(linearSum)
-      # else:
-      #   currentLayerValues = T.nnet.softmax(linearSum)
+      if stage != len(self.weights) -1:
+        currentLayerValues = T.nnet.sigmoid(linearSum)
+      else:
+        e_x = exp(linearSum - linearSum.max(axis=1, keep_dims=True))
+        currentLayerValues = e_x / e_x.sum(axis=1, keep_dims=True)
+        # currentLayerValues = T.nnet.softmax(linearSum)
 
       self.layerValues[stage + 1] = currentLayerValues
 
@@ -261,8 +263,5 @@ class DBN(object):
 
     lastLayers = classify()
 
-    lastLayerValues = lastLayers
-    print type(lastLayerValues)
-
-    return lastLayerValues, np.argmax(lastLayerValues, axis=1)
+    return lastLayers, np.argmax(lastLayers, axis=1)
 
