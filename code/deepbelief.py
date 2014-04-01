@@ -63,9 +63,7 @@ class MiniBatchTrainer(object):
       b = self.biases[stage]
       linearSum = T.dot(currentLayerValues, w) + b
       if stage != len(self.weights) -1:
-        # Try not to use sigmoid to avoid the 0
         currentLayerValues = T.nnet.sigmoid(linearSum)
-
       else:
         currentLayerValues = T.nnet.softmax(linearSum)
 
@@ -200,7 +198,7 @@ class DBN(object):
     # The parameters to be updated
     parametersTuples = zip(batchTrainer.params, deltaParams)
     for param, delta in parametersTuples:
-        paramUpdate = - np.float32(learningRate) * delta
+        paramUpdate = np.float32(learningRate) * delta
         newParam = param + paramUpdate
         updates.append((param, newParam))
 
