@@ -262,6 +262,7 @@ class DBN(object):
     lastLayers = classify()
 
     lastLayerValues = lastLayers
+    print type(lastLayerValues)
 
     return lastLayerValues, T.argmax(lastLayerValues, axis=1)
 
