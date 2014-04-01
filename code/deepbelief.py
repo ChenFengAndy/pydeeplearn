@@ -62,10 +62,10 @@ class MiniBatchTrainer(object):
       w = self.weights[stage]
       b = self.biases[stage]
       linearSum = T.dot(currentLayerValues, w) + b
-      if stage != len(self.weights) -1:
-        currentLayerValues = T.nnet.sigmoid(linearSum)
-      else:
-        currentLayerValues = T.nnet.softmax(linearSum)
+      # if stage != len(self.weights) -1:
+      currentLayerValues = T.nnet.sigmoid(linearSum)
+      # else:
+      #   currentLayerValues = T.nnet.softmax(linearSum)
 
       self.layerValues[stage + 1] = currentLayerValues
 
@@ -187,7 +187,8 @@ class DBN(object):
                                     initialWeights=self.weights,
                                     initialBiases=self.biases)
 
-    # the error is the sum of the individual errors
+    # the error for this batch: it is the sum of the errors obtained from
+    # each data instance
     error = T.sum(batchTrainer.cost(y))
 
     deltaParams = T.grad(error, batchTrainer.params)
