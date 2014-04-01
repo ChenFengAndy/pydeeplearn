@@ -55,24 +55,6 @@ class MiniBatchTrainer(object):
     # gradient
     self.params = self.weights + self.biases
 
-    # The updates that were performed in the last batch
-    # Required for momentum
-    # It is important that the order in which
-    # we add the oldUpdates is the same as which we add the params
-    # TODO: add an assertion for this
-    self.oldUpdates = []
-    for i in xrange(nrLayers - 1):
-      oldDw = theano.shared(value=np.zeros(shape=initialWeights[i].shape,
-                                           dtype=theanoFloat),
-                        name='oldDw')
-      self.oldUpdates.append(oldDw)
-
-    for i in xrange(nrLayers - 1):
-      oldDb = theano.shared(value=np.zeros(shape=initialBiases[i].shape,
-                                           dtype=theanoFloat),
-                        name='oldDb')
-      self.oldUpdates.append(oldDb)
-
     currentLayerValues = self.input
     self.layerValues = [0 for x in xrange(nrLayers)]
     self.layerValues[0] = currentLayerValues
@@ -80,14 +62,9 @@ class MiniBatchTrainer(object):
       w = self.weights[stage]
       b = self.biases[stage]
       linearSum = T.dot(currentLayerValues, w) + b
-      # TODO: make this a function that you pass around
-      # it is important to make the activation functions outside
-      # Also check the Stamford paper again to what they did to average out
-      # the results with softmax and regression layers?
       if stage != len(self.weights) -1:
         # Try not to use sigmoid to avoid the 0
         currentLayerValues = T.nnet.sigmoid(linearSum)
-        # currentLayerValues = 1.0 / (1.0 + T.exp(-linearSum))
 
       else:
         currentLayerValues = T.nnet.softmax(linearSum)
@@ -124,7 +101,6 @@ class DBN(object):
 
     assert len(layerSizes) == nrLayers
     assert len(activationFunctions) == nrLayers - 1
-    self.dropout = 1
     self.miniBatchSize = 10
 
   def train(self, data, labels=None):
@@ -194,14 +170,12 @@ class DBN(object):
   def fineTune(self, data, labels, epochs=100):
     learningRate = 0.1
     # batchLearningRate = learningRate / self.miniBatchSize
-    batchLearningRate = np.float32(learningRate)
 
     nrMiniBatches = self.nrMiniBatches
     # Let's build the symbolic graph which takes the data trough the network
     # allocate symbolic variables for the data
     # index of a mini-batch
     miniBatchIndex = T.lscalar()
-    momentum = T.fscalar()
 
     # The mini-batch data is a matrix
     x = T.matrix('x', dtype=theanoFloat)
@@ -224,13 +198,11 @@ class DBN(object):
     # (variable, update expression) pairs
     updates = []
     # The parameters to be updated
-    parametersTuples = zip(batchTrainer.params, deltaParams, batchTrainer.oldUpdates)
+    parametersTuples = zip(batchTrainer.params, deltaParams)
     for param, delta, oldUpdate in parametersTuples:
-        # paramUpdate = momentum * oldUpdate - batchLearningRate * delta
-        paramUpdate = - np.float32(0.1) * delta
+        paramUpdate = - np.float32(learningRate) * delta
         newParam = param + paramUpdate
         updates.append((param, newParam))
-        updates.append((oldUpdate, paramUpdate))
 
     mode = theano.compile.MonitorMode(
       # pre_func=inspect_inputs,
@@ -255,11 +227,6 @@ class DBN(object):
       # you have to pass in the momentum here as well as a parameter for
       # the trainmodel
       for batchNr in xrange(nrMiniBatches):
-        if epoch < epochs / 10:
-          momentum = np.float32(0.5)
-        else:
-          momentum = np.float32(0.95)
-        # error = train_model(batchNr, momentum)
         error = train_model(batchNr)
 
     # Let's put the weights back in the dbn class as they are used for classification
@@ -293,33 +260,5 @@ class DBN(object):
 
     lastLayerValues = lastLayers
 
-    # lastLayerValues = forwardPass(self.classifcationWeights,
-    #                               self.classifcationBiases,
-    #                               self.activationFunctions,
-    #                               dataInstaces)[-1]
     return lastLayerValues, T.argmax(lastLayerValues, axis=1)
 
-# NO LONGER REALLY USED? REMOVE?
-
-# This method is now kept only for classification
-# The training is done using theano and does not need this
-# I will see if I add this later to GPU as well
-# Since we now have the derivative there
-# is not need to have the more convoluted classes for activation functions
-# TODO: some of these things here are 64 bits, this can cause problems
-def forwardPass(weights, biases, activationFunctions, dataInstaces):
-  # TODO: data instances should be float32
-  currentLayerValues = dataInstaces
-  layerValues = [currentLayerValues]
-  size = dataInstaces.shape[0]
-
-  for stage in xrange(len(weights)):
-    w = weights[stage]
-    b = biases[stage]
-    activation = activationFunctions[stage]
-
-    linearSum = np.dot(currentLayerValues, w) + np.tile(b, (size, 1))
-    currentLayerValues = activation.value(linearSum)
-    layerValues += [currentLayerValues]
-
-  return layerValues
