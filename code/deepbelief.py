@@ -264,5 +264,5 @@ class DBN(object):
     lastLayerValues = lastLayers
     print type(lastLayerValues)
 
-    return lastLayerValues, T.argmax(lastLayerValues, axis=1)
+    return lastLayerValues, np.argmax(lastLayerValues, axis=1)
 
