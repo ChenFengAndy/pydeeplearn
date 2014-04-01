@@ -231,11 +231,15 @@ class DBN(object):
     # Let's put the weights back in the dbn class as they are used for classification
     # Note that if you leave it like this you od not have
     # to deal with the random theano stuff
+    print "weights"
     for i in xrange(len(self.weights)):
       self.weights[i] = batchTrainer.weights[i].get_value()
+      print self.weights[i]
 
+    print "biases"
     for i in xrange(len(self.biases)):
       self.biases[i] = batchTrainer.biases[i].get_value()
+      print self.biases[i]
 
   def classify(self, dataInstaces):
     # TODO: run it on the gpu according to the number of instances
