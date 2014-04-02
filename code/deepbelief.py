@@ -62,12 +62,18 @@ class MiniBatchTrainer(object):
       w = self.weights[stage]
       b = self.biases[stage]
       linearSum = T.dot(currentLayerValues, w) + b
+      print "type(linearSum)"
+      print type(linearSum)
       if stage != len(self.weights) -1:
         currentLayerValues = T.nnet.sigmoid(linearSum)
       else:
-        e_x = T.exp(linearSum - linearSum.max(axis=1, keep_dims=True))
-        currentLayerValues = e_x / e_x.sum(axis=1, keep_dims=True)
+        # e_x = T.exp(linearSum - linearSum.max(axis=1, keep_dims=True))
+        # currentLayerValues = e_x / e_x.sum(axis=1, keep_dims=True)
+        currentLayerValues = T.nnet.sigmoid(linearSum)
         # currentLayerValues = T.nnet.softmax(linearSum)
+
+      print "type(currentLayerValues)"
+      print type(currentLayerValues)
 
       self.layerValues[stage + 1] = currentLayerValues
 
