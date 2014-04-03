@@ -244,7 +244,7 @@ class DBN(object):
       miniBatch: The number of instances to be used in a miniBatch
       epochs: The number of epochs to use for fine tuning
   """
-  def fineTune(self, data, labels, validationData, validationLabels, maxEpochs=200):
+  def fineTune(self, data, labels, validationData, validationLabels, maxEpochs=400):
     learningRate = 0.1
     batchLearningRate = learningRate / self.miniBatchSize
     batchLearningRate = np.float32(batchLearningRate)
