@@ -295,7 +295,7 @@ class DBN(object):
 
     # Let's create the function that validates the model!
     validate_model = theano.function(inputs=[],
-      outputs=error,
+      outputs=batchTrainer.cost(y),
       givens={x: validationData,
               y: validationLabels})
 
@@ -315,7 +315,7 @@ class DBN(object):
         else:
           momentum = np.float32(0.95)
         error = train_model(batchNr, momentum)
-        meanValidation = validate_model()
+        meanValidation = np.mean(validate_model(), axis=0)
         # if meanValidation < smallestValidationError:
         #   smallestValidationError = meanValidation
         #   iterationSmallestValidtion = epoch
