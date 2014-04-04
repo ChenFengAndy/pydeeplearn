@@ -315,15 +315,15 @@ class DBN(object):
         else:
           momentum = np.float32(0.95)
         error = train_model(batchNr, momentum)
-        meanValidation = np.mean(validate_model(), axis=0)
-        # if meanValidation < smallestValidationError:
-        #   smallestValidationError = meanValidation
-        #   iterationSmallestValidtion = epoch
-        if meanValidation > lastValidationError:
-          count +=1
-        else:
-          count = 0
-        lastValidationError = meanValidation
+      meanValidation = np.mean(validate_model(), axis=0)
+      # if meanValidation < smallestValidationError:
+      #   smallestValidationError = meanValidation
+      #   iterationSmallestValidtion = epoch
+      if meanValidation > lastValidationError:
+        count +=1
+      else:
+        count = 0
+      lastValidationError = meanValidation
 
       epoch +=1
 
