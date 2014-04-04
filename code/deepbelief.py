@@ -299,9 +299,6 @@ class DBN(object):
       givens={x: validationData,
               y: validationLabels})
 
-    # TODO: early stopping
-    # TODO: do this loop in THEANO to increase speed?
-    # smallestValidationError = np.inf
     lastValidationError = np.inf
     count = 0
     epoch = 0
@@ -316,9 +313,7 @@ class DBN(object):
           momentum = np.float32(0.95)
         error = train_model(batchNr, momentum)
       meanValidation = np.mean(validate_model(), axis=0)
-      # if meanValidation < smallestValidationError:
-      #   smallestValidationError = meanValidation
-      #   iterationSmallestValidtion = epoch
+
       if meanValidation > lastValidationError:
         count +=1
       else:
