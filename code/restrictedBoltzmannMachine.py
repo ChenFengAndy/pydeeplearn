@@ -36,7 +36,7 @@ class RBM(object):
       self.biases = self.intializeBiases(data, self.nrHidden)
       self.initialized = True
 
-    for i in xrange(50):
+    for i in xrange(10):
       self.biases, self.weights = self.trainingFunction(data,
                                                       self.biases,
                                                       self.weights,
