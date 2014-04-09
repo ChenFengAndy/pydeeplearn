@@ -50,6 +50,7 @@ class RBMMiniBatchTrainer(object):
 
     self.oldDParams = [oldDw, oldDVis, oldDHid]
 
+    # TODO: hidden activations not hidden in the returned values
     # This does not sample the visible layers, but samples
     # The hidden layers up to the last one, like Hinton suggests
     def OneSampleStep(visibleSample):
@@ -60,13 +61,6 @@ class RBMMiniBatchTrainer(object):
       visibleRec = T.nnet.sigmoid(T.dot(hidden, self.weights.T) + self.biasVisible)
       return [hidden, visibleRec]
 
-    # visible = self.visible
-    # for i in xrange(cdSteps):
-      # hiddenActivations = T.nnet.sigmoid(T.dot(self.visible, self.weights) + self.biasHidden)
-      # hidden = self.theano_rng.binomial(size=hiddenActivations.shape,
-      #                                     n=1, p=hiddenActivations,
-      #                                     dtype=theanoFloat)
-      # visibleRec = T.nnet.sigmoid(T.dot(hidden, self.weights.T) + self.biasVisible)
 
 
     results, updates = theano.scan(OneSampleStep,
@@ -81,8 +75,22 @@ class RBMMiniBatchTrainer(object):
     self.visibleReconstruction = results[1][-1]
 
     # Do not sample for the last one, in order to get less sampling noise
-    hiddenRec = T.nnet.sigmoid(T.dot(self.visibleReconstruction, self.weights) + self.biasHidden)
-    self.hiddenReconstruction = hiddenRec
+    # hiddenRec = T.nnet.sigmoid(T.dot(self.visibleReconstruction, self.weights) + self.biasHidden)
+    # self.hiddenReconstruction = hiddenRec
+
+    # visible = self.visible
+    # for i in xrange(cdSteps):
+    #   hiddenActivations = T.nnet.sigmoid(T.dot(visible, self.weights) + self.biasHidden)
+    #   hidden = self.theano_rng.binomial(size=hiddenActivations.shape,
+    #                                       n=1, p=hiddenActivations,
+    #                                       dtype=theanoFloat)
+    #   if i == 0:
+    #     self.hidden = hidden
+    #   visible = T.nnet.sigmoid(T.dot(hidden, self.weights.T) + self.biasVisible)
+
+    # self.visibleReconstruction = visible
+    # hiddenRec = T.nnet.sigmoid(T.dot(self.visibleReconstruction, self.weights) + self.biasHidden)
+    # self.hiddenReconstruction = hiddenRec
 
 
 # TODO: different learning rates for weights and biases
