@@ -61,8 +61,6 @@ class RBMMiniBatchTrainer(object):
       visibleRec = T.nnet.sigmoid(T.dot(hidden, self.weights.T) + self.biasVisible)
       return [hidden, visibleRec]
 
-
-
     results, updates = theano.scan(OneSampleStep,
                           outputs_info=[None, self.visible],
                           n_steps=self.cdSteps)
