@@ -73,8 +73,8 @@ class RBMMiniBatchTrainer(object):
     self.visibleReconstruction = results[1][-1]
 
     # Do not sample for the last one, in order to get less sampling noise
-    # hiddenRec = T.nnet.sigmoid(T.dot(self.visibleReconstruction, self.weights) + self.biasHidden)
-    # self.hiddenReconstruction = hiddenRec
+    hiddenRec = T.nnet.sigmoid(T.dot(self.visibleReconstruction, self.weights) + self.biasHidden)
+    self.hiddenReconstruction = hiddenRec
 
     # visible = self.visible
     # for i in xrange(cdSteps):
