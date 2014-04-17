@@ -98,16 +98,25 @@ def rbmEmotions(big=False, reconstructRandom=False):
   print "test.shape"
   print test.shape
   plt.imshow(vectorToImage(test, SMALL_SIZE), cmap=plt.cm.gray)
+  ax = plt.axes(frameon=False)
+  plt.setp(ax.get_xticklabels(), visible=False)
+  plt.setp(ax.get_yicklabels(), visible=False)
   plt.show()
 
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   print recon.shape
   plt.imshow(vectorToImage(recon, SMALL_SIZE), cmap=plt.cm.gray)
+  ax = plt.axes(frameon=False)
+  plt.setp(ax.get_xticklabels(), visible=False)
+  plt.setp(ax.get_yicklabels(), visible=False)
   plt.show()
 
   # Show the weights and their form in a tile fashion
   # Plot the weights
   plt.imshow(t, cmap=plt.cm.gray)
+  ax = plt.axes(frameon=False)
+  plt.setp(ax.get_xticklabels(), visible=False)
+  plt.setp(ax.get_yicklabels(), visible=False)
   plt.show()
   print "done"
 
