@@ -182,7 +182,7 @@ class RBM(object):
         momentum = np.float32(0.5)
         step = 1
       else:
-        momentum = np.float32(0.95)
+        momentum = np.float32(0.98)
         step = 3
 
       train_function(miniBatchIndex, momentum, step)
