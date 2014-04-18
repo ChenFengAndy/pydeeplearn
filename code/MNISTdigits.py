@@ -100,6 +100,7 @@ def rbmMain(reconstructRandom=True):
   # Show the weights and their form in a tile fashion
   # Plot the weights
   plt.imshow(t, cmap=plt.cm.gray)
+  plt.axis('off')
   plt.show()
   print "done"
 
