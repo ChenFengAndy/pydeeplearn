@@ -86,26 +86,20 @@ def rbmMain(reconstructRandom=True):
 
   # Show the initial image first
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
+
   plt.imshow(vectorToImage(test, (28,28)), cmap=plt.cm.gray)
-  ax = plt.axes(frameon=False)
-  plt.setp(ax.get_xticklabels(), visible=False)
-  plt.setp(ax.get_yicklabels(), visible=False)
+  plt.axis('off')
   plt.show()
 
   # Show the reconstruction
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   plt.imshow(vectorToImage(recon, (28,28)), cmap=plt.cm.gray)
-  ax = plt.axes(frameon=False)
-  ax.set_xticklabels([])
-  ax.set_yticklabels([])
+  plt.axis('off')
   plt.show()
 
   # Show the weights and their form in a tile fashion
   # Plot the weights
   plt.imshow(t, cmap=plt.cm.gray)
-  ax = plt.axes(frameon=False)
-  plt.setp(ax.get_xticklabels(), visible=False)
-  plt.setp(ax.get_yicklabels(), visible=False)
   plt.show()
   print "done"
 
