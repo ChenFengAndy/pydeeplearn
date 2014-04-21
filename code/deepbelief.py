@@ -318,14 +318,15 @@ class DBN(object):
                maxEpochs):
     print "supervisedLearningRate"
     print self.supervisedLearningRate
-    batchLearningRate = self.supervisedLearningRate / self.miniBatchSize
-    batchLearningRate = np.float32(batchLearningRate)
+    # batchLearningRate = self.supervisedLearningRate / self.miniBatchSize
+    # batchLearningRate = np.float32(batchLearningRate)
 
     # Let's build the symbolic graph which takes the data trough the network
     # allocate symbolic variables for the data
     # index of a mini-batch
     miniBatchIndex = T.lscalar()
     momentum = T.fscalar()
+    batchLearningRate = T.fscalar()
 
     # The mini-batch data is a matrix
     x = T.matrix('x', dtype=theanoFloat)
@@ -357,7 +358,7 @@ class DBN(object):
           mode = mode)
 
       update_params = theano.function(
-          inputs =[miniBatchIndex, momentum],
+          inputs =[miniBatchIndex, momentum, batchLearningRate],
           outputs=error,
           updates=updates,
           givens={
@@ -365,15 +366,15 @@ class DBN(object):
               y: labels[miniBatchIndex * self.miniBatchSize:(miniBatchIndex + 1) * self.miniBatchSize]},
           mode=mode)
 
-      def trainModel(miniBatchIndex, momentum):
+      def trainModel(miniBatchIndex, momentum, batchLearningRate):
         momentum_step(momentum)
-        return update_params(miniBatchIndex, momentum)
+        return update_params(miniBatchIndex, momentum, batchLearningRate)
     else:
 
       updates = self.buildUpdatesSimpleMomentum(batchTrainer, momentum,
                     batchLearningRate, error)
       trainModel = theano.function(
-            inputs=[miniBatchIndex, momentum],
+            inputs=[miniBatchIndex, momentum, batchLearningRate],
             outputs=error,
             updates=updates,
             givens={
@@ -409,14 +410,16 @@ class DBN(object):
 
 
   def trainLoopModelFixedEpochs(self, batchTrainer, trainModel, maxEpochs):
+    learningRate = np.float32(1.0)
     for epoch in xrange(maxEpochs):
       print "epoch " + str(epoch)
 
       momentum = np.float32(min(np.float32(0.5) + epoch * np.float32(0.01),
                      np.float32(0.99)))
+      learningRate*= 0.95
 
       for batchNr in xrange(self.nrMiniBatches):
-        trainModel(batchNr, momentum)
+        trainModel(batchNr, momentum, batchLearningRate)
         for i in xrange(self.nrLayers - 2):
           assert np.all(np.linalg.norm(batchTrainer.weights[i].get_value(), axis=0) <= self.normConstraint + 1e-8)
 
