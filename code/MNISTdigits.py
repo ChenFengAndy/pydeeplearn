@@ -98,14 +98,14 @@ def rbmMain(reconstructRandom=False):
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   plt.imshow(vectorToImage(test, (28,28)), cmap=plt.cm.gray)
   plt.axis('off')
-  plt.savefig('initial7.png', transparent=True)
+  plt.savefig('trial7.png', transparent=True)
   # plt.show()
 
   # Show the reconstruction
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   plt.imshow(vectorToImage(recon, (28,28)), cmap=plt.cm.gray)
   plt.axis('off')
-  plt.savefig('reconstruct7withall.png', transparent=True)
+  plt.savefig('trailrec7.png', transparent=True)
 
   # plt.show()
 
@@ -113,7 +113,7 @@ def rbmMain(reconstructRandom=False):
   # Plot the weights
   plt.imshow(t, cmap=plt.cm.gray)
   plt.axis('off')
-  plt.savefig('weights2srmsprop.png', transparent=True)
+  plt.savefig('weightstrial.png', transparent=True)
   # plt.show()
 
   print "done"
