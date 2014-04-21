@@ -61,7 +61,7 @@ db.DEBUG = args.debug
 
 def rbmMain(reconstructRandom=False):
   trainVectors, trainLabels =\
-      readmnist.read(0, args.trainSize, digits=[2], bTrain=True, path="MNIST")
+      readmnist.read(0, args.trainSize, digits=None, bTrain=True, path="MNIST")
   testingVectors, testLabels =\
       readmnist.read(0, args.testSize, digits=None, bTrain=False, path="MNIST")
 
