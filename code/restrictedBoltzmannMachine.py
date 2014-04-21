@@ -384,3 +384,7 @@ def intializeBiases(data, nrHidden):
 
   hiddenBiases = np.zeros(nrHidden, dtype=theanoFloat)
   return np.array([visibleBiases, hiddenBiases])
+
+
+def SquaredElementWiseNorm(x):
+  return T.sum(T.sqr(x), axis=0)
