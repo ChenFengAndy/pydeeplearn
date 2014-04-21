@@ -410,7 +410,7 @@ class DBN(object):
 
 
   def trainLoopModelFixedEpochs(self, batchTrainer, trainModel, maxEpochs):
-    learningRate = np.float32(1.0)
+    learningRate = np.float32(0.1)
     for epoch in xrange(maxEpochs):
       print "epoch " + str(epoch)
 
