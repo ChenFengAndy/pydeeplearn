@@ -76,7 +76,7 @@ def rbmMain(reconstructRandom=False):
     nrVisible = len(trainingScaledVectors[0])
     nrHidden = 500
     # use 1 dropout to test the rbm for now
-    net = rbm.RBM(nrVisible, nrHidden, 0.01, 1, 1,
+    net = rbm.RBM(nrVisible, nrHidden, 0.01, 1, 1, normConstraint=15,
                   rmsprop=args.rbmrmsprop, nesterov=args.rbmnesterov)
     net.train(trainingScaledVectors)
     t = visualizeWeights(net.weights.T, (28,28), (10,10))
