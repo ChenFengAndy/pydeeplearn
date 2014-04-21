@@ -97,8 +97,10 @@ class RBMMiniBatchTrainer(object):
 """
 class RBM(object):
 
-  def __init__(self, nrVisible, nrHidden, learningRate, hiddenDropout,
-                visibleDropout, rmsprop=True, nesterov=True,
+  def __init__(self, nrVisible, nrHidden, learningRate,
+                hiddenDropout, visibleDropout,
+                normConstraint,
+                rmsprop=True, nesterov=True,
                 initialWeights=None, initialBiases=None):
     # dropout = 1 means no dropout, keep all the weights
     self.hiddenDropout = hiddenDropout
@@ -112,6 +114,7 @@ class RBM(object):
     self.nesterov = nesterov
     self.weights = initialWeights
     self.biases = initialBiases
+    self.normConstraint = normConstraint
 
   def train(self, data, miniBatchSize=10):
     print "rbm learningRate"
@@ -280,7 +283,16 @@ class RBM(object):
     else:
       wUpdate = batchLearningRate * delta
 
-    updates.append((batchTrainer.weights, batchTrainer.weights + wUpdate))
+    newWeights = batchTrainer.weights + wUpdate
+    if self.normConstraint is not None:
+        norms = SquaredElementWiseNorm(newWeights)
+        rescaled = norms > self.normConstraint
+        factors = T.ones(norms.shape, dtype=theanoFloat) / T.sqrt(norms) * np.sqrt(self.normConstraint, dtype='float32') - 1.0
+        replaceNewParam = (factors * rescaled) * newWeights
+        replaceNewParam += newWeights
+        newWeights = replaceNewParam
+
+    updates.append((batchTrainer.weights, newWeights))
     updates.append((batchTrainer.oldDParams[0], wUpdate + wUpdateMomentum))
 
     visibleBiasDiff = T.sum(batchTrainer.visible - batchTrainer.visibleReconstruction, axis=0)

@@ -203,6 +203,7 @@ class DBN(object):
                       learningRate=self.unsupervisedLearningRate,
                       hiddenDropout=self.rbmHiddenDropout,
                       visibleDropout=self.rbmVisibleDropout,
+                      normConstraint=self.normConstraint,
                       nesterov=self.rbmNesterovMomentum,
                       initialWeights=initialWeights,
                       initialBiases=initialBiases)
