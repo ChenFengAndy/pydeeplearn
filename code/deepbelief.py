@@ -233,7 +233,8 @@ class DBN(object):
     self.biases += [lastLayerBiases]
 
     for i in xrange(self.nrLayers - 2):
-      print np.linalg.norm(self.weights[i].get_value(), axis=0)
+      for j in np.linalg.norm(self.weights[i], axis=0):
+        print j
 
 
     assert len(self.weights) == self.nrLayers - 1
