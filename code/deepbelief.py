@@ -232,6 +232,10 @@ class DBN(object):
     self.weights += [lastLayerWeights]
     self.biases += [lastLayerBiases]
 
+    for i in xrange(self.nrLayers - 2):
+      print np.linalg.norm(batchTrainer.weights[i].get_value(), axis=0)
+
+
     assert len(self.weights) == self.nrLayers - 1
     assert len(self.biases) == self.nrLayers - 1
 
@@ -416,7 +420,7 @@ class DBN(object):
 
       momentum = np.float32(min(np.float32(0.5) + epoch * np.float32(0.01),
                      np.float32(0.99)))
-      learningRate*= 0.9
+      learningRate*= 0.99
       learningRate = np.float32(learningRate)
 
       for batchNr in xrange(self.nrMiniBatches):
